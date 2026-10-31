@@ -1,0 +1,1294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#16324f">
+<meta name="description" content="Offline-first Business Archiving and Employee Attendance application.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/app-icon.svg" type="image/svg+xml">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Attendance">
+<title>Business Archiving & Employee Attendance — Offline</title>
+<style>
+:root{--navy:#16324f;--blue:#246bfd;--green:#16834b;--red:#c93636;--orange:#b76b00;--bg:#f4f7fb;--text:#18212b;--muted:#667384;--border:#dbe2ea;--white:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--navy);color:#fff;padding:18px max(18px,calc((100% - 1150px)/2));display:flex;justify-content:space-between;align-items:center;gap:15px}h1{margin:0;font-size:25px}header p{margin:5px 0 0;opacity:.8}main{max-width:1150px;margin:auto;padding:22px}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;box-shadow:0 3px 12px #00000008}.card span{display:block;color:var(--muted);font-size:12px}.card strong{font-size:27px;margin-top:6px;display:block}
+.tabs{display:flex;gap:7px;margin-bottom:15px;overflow:auto}.tab{border:1px solid var(--border);background:#fff;padding:11px 15px;border-radius:9px;cursor:pointer;font-weight:800;white-space:nowrap}.tab.active{background:var(--navy);color:#fff}.panel{display:none;background:#fff;border:1px solid var(--border);border-radius:14px;padding:21px;box-shadow:0 3px 12px #00000008}.panel.active{display:block}
+.clock-box{text-align:center;background:#eef4ff;border-radius:14px;padding:20px;margin-bottom:18px}.live-clock{font-size:48px;font-weight:800;letter-spacing:2px}.muted{color:var(--muted);font-size:14px}.secure-box,.gate{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:18px}label{display:block;font-weight:700;font-size:14px;margin:11px 0}input,select{width:100%;padding:11px;border:1px solid var(--border);border-radius:9px;background:#fff;font:inherit;margin-top:6px}input:focus,select:focus{outline:2px solid #c9dcff;border-color:var(--blue)}small{display:block;margin-top:5px;font-weight:400}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:9px;padding:11px 15px;font-weight:800;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--green);color:#fff}.danger{background:var(--red);color:#fff}.secondary{background:#edf1f5;color:var(--text)}.warning{background:#fff0d2;color:#744900}.status{margin:13px 0;padding:11px;border-radius:9px;background:#f4f6f8}.message{min-height:20px;font-weight:700}
+.table-wrap{overflow:auto;margin-top:16px}table{border-collapse:collapse;width:100%;min-width:800px}th,td{border-bottom:1px solid var(--border);padding:10px;text-align:left;font-size:13px}th{background:#f6f8fa}.small-btn{padding:6px 9px;font-size:12px}.record-head,.locked-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}.filters{display:grid;grid-template-columns:1.4fr 180px 180px;gap:9px}.gate-row{display:flex;gap:9px}.gate-row input{margin-top:0;flex:1}.gate-row button{white-space:nowrap}.lock-badge{background:#fff2d9;color:#8a5b00;border-radius:20px;padding:7px 10px;font-size:11px;font-weight:900;white-space:nowrap}
+.admin-grid,.report-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:17px 0}.mini-card{background:#f7f9fb;border:1px solid var(--border);border-radius:12px;padding:15px}.mini-card span{display:block;color:var(--muted);font-size:12px}.mini-card strong{display:block;font-size:27px;margin-top:4px}.admin-actions{border-top:1px solid var(--border);padding-top:17px;margin-top:18px}.admin-actions button{margin:4px}.note{background:#fff7e6;border-radius:10px;padding:12px;color:#795400;font-size:13px}.hidden{display:none!important}
+.employee-history-panel{display:block;background:#fff;border:1px solid var(--border);border-radius:14px;padding:21px;box-shadow:0 3px 12px #00000008}
+.employee-history-panel.hidden{display:none!important}.dark-mode{--bg:#0f172a;--panel:#111827;--text:#e5e7eb;--muted:#94a3b8;--border:#334155}.dark-mode input,.dark-mode select{background:#1e293b;color:#e5e7eb}.dark-mode .mini-card,.dark-mode .status,.dark-mode .secure-box,.dark-mode .gate{background:#172033}.dark-mode .secondary{background:#334155;color:#e5e7eb}.dark-mode .clock-box{background:#172554}.dark-mode table{color:#e5e7eb}.dark-mode th{background:#1e293b}.hidden{display:none!important}.pill{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:800}.pill.late{background:#fff0d2;color:#8a5b00}.pill.present{background:#e8f7ee;color:#166b42}.pill.open{background:#e7efff;color:#1c55ad}.pill.leave{background:#f1e8ff;color:#6536a1}.bar{height:12px;background:#e9edf2;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue)}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.summary>div{background:#f7f9fb;padding:12px;border-radius:10px}.summary b{font-size:20px}.danger-zone{border:1px solid #f1c2c2;border-radius:12px;padding:15px;background:#fff9f9}
+footer{text-align:center;color:var(--muted);padding:25px;font-size:13px}
+@media(max-width:900px){.cards{grid-template-columns:repeat(3,1fr)}.filters{grid-template-columns:1fr 1fr}.report-grid,.admin-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){main{padding:12px}.cards{grid-template-columns:repeat(2,1fr)}.live-clock{font-size:36px}.record-head,.locked-head{display:block}.filters{grid-template-columns:1fr}.panel{padding:15px}.gate-row{display:block}.gate-row button{width:100%;margin-top:8px}.actions button{flex:1}.summary{grid-template-columns:1fr}.admin-grid,.report-grid{grid-template-columns:repeat(2,1fr)}}
+
+.weekly-graph-card{margin-top:16px;background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px}.weekly-graph-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.weekly-graph-head h3{margin:0 0 4px}.weekly-graph-note{font-size:11px;font-weight:800;background:#eef4ff;color:#2456a6;padding:6px 9px;border-radius:999px;white-space:nowrap}.weekly-graph{height:230px;display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;margin-top:18px;padding:0 4px}.weekly-bar-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px}.weekly-bar-value{font-size:12px;font-weight:900}.weekly-bar-track{height:170px;width:100%;max-width:55px;background:#e9edf2;border-radius:9px 9px 4px 4px;display:flex;align-items:flex-end;overflow:hidden}.weekly-bar{width:100%;min-height:0;background:var(--blue);border-radius:8px 8px 3px 3px}.weekly-bar-col:nth-child(1) .weekly-bar{background:#2563eb}.weekly-bar-col:nth-child(2) .weekly-bar{background:#16a34a}.weekly-bar-col:nth-child(3) .weekly-bar{background:#f59e0b}.weekly-bar-col:nth-child(4) .weekly-bar{background:#dc2626}.weekly-bar-col:nth-child(5) .weekly-bar{background:#7c3aed}.weekly-bar-col:nth-child(6) .weekly-bar{background:#0891b2}.weekly-bar-col:nth-child(7) .weekly-bar{background:#db2777}.weekly-bar-label{font-size:11px;font-weight:800;color:var(--muted)}.weekly-empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:60px 10px}
+@media(max-width:650px){.weekly-graph{gap:5px}.weekly-bar-track{max-width:38px}.weekly-graph-head{display:block}.weekly-graph-note{display:inline-block;margin-top:7px}}
+
+.daily-record-separator th{background:#eef4ff!important;color:#1f3b68!important;font-weight:900;text-align:left!important;border-top:2px solid #9db7d8!important;border-bottom:1px solid #c8d7e8!important;padding:9px!important}
+@media print{
+  header,.tabs,.cards,.clock-box,footer,#clock,#admin,#leave,.gate,.no-print{display:none!important}
+  body.print-records #records{display:block!important;border:0!important;box-shadow:none!important;padding:0!important}
+  body.print-records #recordsContent{display:block!important}
+  body.print-records .record-head{display:none!important}
+  body.print-records .filters{display:none!important}
+  body.print-records .weekly-graph-card{display:block!important;page-break-inside:avoid!important}
+  body.print-records .table-wrap{display:block!important}
+  body.print-records #recordTable{display:table-row-group!important}
+  body.print-records #records table{min-width:0!important;width:100%!important;font-size:10px!important}
+  body.print-records #records th,body.print-records #records td{padding:6px!important}
+  body.print-records .weekly-bar{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body.print-records .weekly-bar-col:nth-child(1) .weekly-bar{background:#2563eb!important}
+  body.print-records .weekly-bar-col:nth-child(2) .weekly-bar{background:#16a34a!important}
+  body.print-records .weekly-bar-col:nth-child(3) .weekly-bar{background:#f59e0b!important}
+  body.print-records .weekly-bar-col:nth-child(4) .weekly-bar{background:#dc2626!important}
+  body.print-records .weekly-bar-col:nth-child(5) .weekly-bar{background:#7c3aed!important}
+  body.print-records .weekly-bar-col:nth-child(6) .weekly-bar{background:#0891b2!important}
+  body.print-records .weekly-bar-col:nth-child(7) .weekly-bar{background:#db2777!important}
+  body{background:#fff!important}
+  main{padding:0!important;max-width:none!important}
+  #employees{display:none!important;border:0!important;box-shadow:none!important;padding:0!important}
+  #employees.print-employees{display:block!important}
+  #employees.print-employees .locked-head,
+  #employees.print-employees form,
+  #employees.print-employees #employeeSearch,
+  #employees.print-employees .actions,
+  #employees.print-employees #employeeHistory{display:none!important}
+  #employees.print-employees .table-wrap{display:block!important;margin-top:10px!important}
+  #employees.print-employees .employee-print-title{display:block!important}
+  #employees.print-employees table{min-width:0!important;width:100%!important;font-size:11px}
+  #employees.print-employees th,#employees.print-employees td{padding:7px!important;border-bottom:1px solid #ccc}
+  #employees.print-employees th:last-child,#employees.print-employees td:last-child{display:none!important}
+  #employees.print-history{display:block!important;border:0!important;box-shadow:none!important;padding:0!important}
+  #employees.print-history .locked-head,#employees.print-history #employeeSearch,#employees.print-history form,
+  #employees.print-history .employee-list-actions,#employees.print-history .no-print,
+  #employees.print-history .employee-table-wrap{display:none!important}
+  #employees.print-history #employeeHistory{display:block!important;border:0!important;box-shadow:none!important;padding:0!important}
+  #employees.print-history #employeeHistory .locked-head{display:block!important}
+  #employees.print-history #employeeHistory .table-wrap{display:block!important;margin-top:10px!important}
+  #employees.print-history #employeeHistory table{min-width:0!important;width:100%!important;font-size:11px}
+  #employees.print-history #employeeHistory th,#employees.print-history #employeeHistory td{padding:7px!important}
+  .record-head{display:none!important}
+  #recordsContent{display:block!important}
+}
+
+
+
+.archive-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:15px 0}
+.archive-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px}
+.archive-card span{display:block;color:var(--muted);font-size:12px}.archive-card strong{display:block;font-size:25px;margin-top:5px}
+.archive-form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.archive-form .full{grid-column:1/-1}
+.archive-item{border:1px solid var(--border);border-radius:12px;padding:14px;margin:10px 0;background:#fbfcfe}
+.archive-item h3{margin:0 0 5px}.archive-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.archive-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef4ff;color:#2456a6;font-weight:800}
+.archive-preview{max-width:180px;max-height:130px;border-radius:8px;margin-top:10px;border:1px solid var(--border)} .archive-toolbar{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin:14px 0}.archive-toolbar label{margin:0}.archive-tags{display:flex;gap:5px;flex-wrap:wrap}.archive-tag{padding:3px 7px;border-radius:999px;background:#f0f3f7;font-size:11px}.archive-star{font-size:20px;cursor:pointer;border:0;background:none;padding:0}@media(max-width:800px){.archive-toolbar{grid-template-columns:1fr 1fr}}@media(max-width:500px){.archive-toolbar{grid-template-columns:1fr}}
+@media(max-width:800px){.archive-grid{grid-template-columns:repeat(2,1fr)}.archive-form{grid-template-columns:1fr}}
+@media(max-width:500px){.archive-grid{grid-template-columns:1fr}}
+
+/* Responsive + downloadable digital-file enhancements */
+html{overflow-x:hidden}
+body{min-width:0;overflow-x:hidden}
+img,video,canvas,svg{max-width:100%;height:auto}
+button,input,select,textarea{max-width:100%;min-height:44px}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.actions{align-items:stretch}
+.actions button{min-width:120px}
+.archive-item{overflow:hidden}
+.archive-item .actions{display:flex;flex-wrap:wrap}
+.archive-item .actions button{flex:0 1 auto}
+.digital-file-box{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0;padding:10px;border:1px solid var(--border);border-radius:10px;background:#f7f9fb}
+.digital-file-name{min-width:0;flex:1 1 220px;overflow-wrap:anywhere;word-break:break-word}
+.download-status{margin:8px 0;font-size:13px;font-weight:700}
+.file-action{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+@media(max-width:650px){
+  header{padding:14px 12px;align-items:flex-start;flex-direction:column}
+  header h1{font-size:20px;line-height:1.25}
+  header .no-print{width:100%;float:none!important}
+  .cards{gap:8px}
+  .card{padding:11px}
+  .card strong{font-size:22px}
+  .tab{padding:12px 13px}
+  .actions{width:100%}
+  .actions button,.actions .file-action{flex:1 1 100%;width:100%;min-width:0}
+  .archive-item .actions button,.archive-item .actions .file-action{flex:1 1 100%}
+  .archive-preview{display:block;width:100%;max-width:100%;height:auto;max-height:260px;object-fit:contain}
+  .digital-file-box{align-items:stretch}
+  .digital-file-box .file-action{width:100%}
+  table{min-width:680px}
+}
+@media(max-width:420px){
+  main{padding:9px}
+  .cards{grid-template-columns:1fr 1fr}
+  .card span{font-size:11px}
+  .panel{padding:12px}
+  .live-clock{font-size:30px;letter-spacing:1px}
+  .tab{padding:10px 12px;font-size:13px}
+  .archive-grid{grid-template-columns:1fr}
+}
+
+
+/* All-features enhancement layer */
+.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:15px 0}.feature-card{background:#f7f9fb;border:1px solid var(--border);border-radius:12px;padding:14px}.feature-card span{display:block;color:var(--muted);font-size:12px}.feature-card strong{display:block;font-size:22px;margin-top:4px}.activity-list{max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:10px}.activity-item{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}.activity-item:last-child{border-bottom:0}.activity-item time{display:block;color:var(--muted);font-size:11px;margin-top:3px}.restore-box{background:#f7f9fb;border:1px solid var(--border);border-radius:12px;padding:13px;margin-top:12px}.preview-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100000;display:none;align-items:center;justify-content:center;padding:15px}.preview-modal.show{display:flex}.preview-modal-card{width:min(1000px,96vw);height:min(850px,94vh);background:#fff;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}.preview-modal-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #ddd}.preview-modal-body{flex:1;overflow:auto;background:#eef2f6;display:flex;align-items:center;justify-content:center}.preview-modal-body iframe{width:100%;height:100%;border:0}.preview-modal-body img{max-width:100%;max-height:100%;object-fit:contain}.duplicate-warning{color:#9a5b00;font-weight:800;margin-top:7px}.storage-bar{height:10px;background:#e7ebf0;border-radius:99px;overflow:hidden}.storage-bar i{display:block;height:100%;background:var(--blue);width:0}.dark-mode .feature-card,.dark-mode .restore-box{background:#172033}.dark-mode .preview-modal-card{background:#111827;color:#e5e7eb}.dark-mode .preview-modal-head{border-color:#334155}@media(max-width:900px){.feature-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:500px){.feature-grid{grid-template-columns:1fr}}
+
+.best-employee-panel{margin:18px 0;padding:20px;border:1px solid #dbe3ea;border-radius:16px;background:linear-gradient(135deg,#ffffff,#f8fafc);box-shadow:0 8px 24px rgba(15,23,42,.08)}
+.best-employee-head{display:flex;align-items:center;justify-content:space-between;gap:15px}.best-employee-head h2{margin:0 0 5px}.best-employee-summary{margin:15px 0}.best-winner{display:flex;align-items:center;gap:16px;padding:18px;border-radius:14px;background:#fff7d6;border:2px solid #eab308}.best-winner-badge{font-size:38px}.best-winner strong{font-size:24px}.best-score{font-weight:800;font-size:22px}.best-empty{padding:18px;border-radius:12px;background:#f8fafc;text-align:center}.best-employee-panel table{width:100%}.best-employee-panel tr.best-row{background:#fff7d6}.best-employee-panel .rank-1{font-weight:800}
+@media(max-width:700px){.best-employee-head{align-items:flex-start;flex-direction:column}.best-winner{align-items:flex-start}.best-employee-panel{padding:14px}.best-employee-panel .table-wrap{overflow-x:auto}}
+
+/* Face capture */
+.face-capture-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100001;display:none;align-items:center;justify-content:center;padding:14px}
+.face-capture-modal.show{display:flex}
+.face-capture-card{width:min(560px,96vw);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px #0008}
+.face-capture-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #ddd}
+.face-camera{background:#111;display:flex;align-items:center;justify-content:center;min-height:300px}
+.face-camera video{width:100%;max-height:55vh;object-fit:cover;display:block}
+.face-preview{display:none;width:100%;max-height:55vh;object-fit:cover}
+.face-capture-body{padding:14px 16px}
+.face-capture-status{padding:10px;border-radius:9px;background:#f4f6f8;font-size:13px;font-weight:700}
+.face-capture-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.face-capture-actions button{flex:1}
+.face-thumb{width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--border);vertical-align:middle}
+@media(max-width:600px){.face-capture-card{width:100%}.face-camera{min-height:240px}.face-capture-actions button{flex:1 1 100%}}
+
+
+.daily-record-separator th{page-break-before:auto!important;padding:12px 10px!important;font-size:14px!important;letter-spacing:.2px}.daily-record-separator:first-child th{border-top:0!important}.daily-record-separator+tr td{border-top:0!important}
+</style>
+</head>
+<body>
+
+<div id="pwa-install-banner" role="region" aria-label="Install Attendance app">
+  <div class="pwa-install-copy">
+    <strong>Install Attendance App</strong>
+    <span id="pwa-install-message">Install this app on your device for quick access and offline use.</span>
+  </div>
+  <button id="pwa-install-button" type="button">⬇ Install App</button>
+  <button id="pwa-install-help" type="button" aria-label="Installation help">Help</button>
+</div>
+<div id="pwa-install-help-panel" hidden>
+  <strong>How to install</strong>
+  <p id="pwa-install-help-text">Use the Install App button. If your browser does not offer installation, open this page in a supported browser over HTTPS.</p>
+  <button id="pwa-install-help-close" type="button">Close</button>
+</div>
+<style id="pwa-install-styles">
+#pwa-install-banner[hidden],#pwa-install-help-panel[hidden]{display:none!important}
+#pwa-install-banner{box-sizing:border-box;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:linear-gradient(110deg,#16324f,#246bfd);color:#fff;font:14px/1.4 system-ui,sans-serif;position:relative;z-index:9999;box-shadow:0 3px 12px #0002}
+#pwa-install-banner .pwa-install-copy{display:flex;flex:1 1 230px;flex-direction:column;gap:2px}
+#pwa-install-banner strong{font-size:16px}
+#pwa-install-banner span{opacity:.96}
+#pwa-install-banner button,#pwa-install-help-panel button{border:0;border-radius:9px;padding:10px 15px;font-weight:700;cursor:pointer;min-height:42px}
+#pwa-install-button{background:#fff;color:#16324f}
+#pwa-install-help{background:#dbeafe;color:#16324f}
+#pwa-install-help-panel{position:relative;z-index:9998;margin:8px 12px;padding:14px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;color:#172536;font:14px/1.5 system-ui,sans-serif;box-shadow:0 4px 16px #0001}
+#pwa-install-help-panel[hidden]{display:none}
+@media(max-width:480px){#pwa-install-banner{padding:10px;gap:8px}#pwa-install-banner .pwa-install-copy{flex-basis:100%}#pwa-install-banner button{flex:1}}
+@media print{#pwa-install-banner,#pwa-install-help-panel{display:none!important}}
+</style>
+<script id="pwa-install-controller">
+(function(){
+  var deferredPrompt=null;
+  var btn=document.getElementById('pwa-install-button');
+  var msg=document.getElementById('pwa-install-message');
+  var help=document.getElementById('pwa-install-help');
+  var panel=document.getElementById('pwa-install-help-panel');
+  var helpText=document.getElementById('pwa-install-help-text');
+  function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;}
+  function hideInstallUI(){var banner=document.getElementById('pwa-install-banner');if(banner)banner.hidden=true;if(panel)panel.hidden=true;}
+  function setInstalled(){hideInstallUI();}
+  function instructions(){
+    var ua=navigator.userAgent||'';
+    if(/iPhone|iPad|iPod/i.test(ua)){
+      helpText.textContent='On iPhone/iPad: open this page in Safari, tap Share, then choose “Add to Home Screen” and tap Add. iOS does not support the automatic install prompt used by other browsers.';
+    }else if(/Android/i.test(ua)){
+      helpText.textContent='On Android: open this page in Chrome, tap Install App. If the prompt does not appear, open the browser menu (⋮) and choose “Install app” or “Add to Home screen”.';
+    }else{
+      helpText.textContent='On a computer: open this page in Google Chrome or Microsoft Edge. Click Install App; if no prompt appears, use the install icon in the address bar or the browser menu and choose “Install app”. The site must be hosted on HTTPS (such as GitHub Pages).';
+    }
+    panel.hidden=false;
+  }
+  if(isStandalone()){setInstalled();}
+  if(window.matchMedia){var displayMode=window.matchMedia('(display-mode: standalone)');if(displayMode.addEventListener){displayMode.addEventListener('change',function(e){if(e.matches)setInstalled();});}else if(displayMode.addListener){displayMode.addListener(function(e){if(e.matches)setInstalled();});}}
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault(); deferredPrompt=e; btn.disabled=false; btn.textContent='⬇ Install App';
+    msg.textContent='Ready to install. Select Install App and confirm the prompt.';
+  });
+  window.addEventListener('appinstalled',function(){deferredPrompt=null;setInstalled();});
+  btn.addEventListener('click',async function(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      try{await deferredPrompt.userChoice;}catch(e){}
+      deferredPrompt=null;
+    }else if(isStandalone()){setInstalled();}
+    else{instructions();}
+  });
+  help.addEventListener('click',instructions);
+  document.getElementById('pwa-install-help-close').addEventListener('click',function(){panel.hidden=true;});
+  if(!('serviceWorker' in navigator) || !(location.protocol==='https:'||location.hostname==='localhost')){
+    msg.textContent='Install is available when this app is hosted on HTTPS (for example, GitHub Pages).';
+  }else if(!isStandalone()){
+    msg.textContent='Open this page on your device, then select Install App.';
+  }
+})();
+</script>
+
+
+<header><button id="darkModeBtn" class="secondary no-print" style="float:right">DARK MODE</button><div><h1>Business Archiving & Employee Attendance</h1><p>Secure Offline Clock-In & Clock-Out</p></div></header>
+
+<div id="previewModal" class="preview-modal" role="dialog" aria-modal="true"><div class="preview-modal-card"><div class="preview-modal-head"><strong id="previewModalTitle">File Preview</strong><div class="actions" style="margin:0"><button id="previewDownloadBtn" class="secondary">DOWNLOAD</button><button id="previewCloseBtn" class="danger">CLOSE</button></div></div><div id="previewModalBody" class="preview-modal-body"></div></div></div>
+
+<div id="faceCaptureModal" class="face-capture-modal" role="dialog" aria-modal="true" aria-labelledby="faceCaptureTitle">
+  <div class="face-capture-card">
+    <div class="face-capture-head"><strong id="faceCaptureTitle">Face Capture — Clock In</strong><button id="faceCloseBtn" class="secondary" type="button">CANCEL</button></div>
+    <div class="face-camera">
+      <video id="faceVideo" autoplay playsinline muted></video>
+      <img id="facePreview" class="face-preview" alt="Captured employee face">
+    </div>
+    <div class="face-capture-body">
+      <p class="muted">The normal device camera will open. Take the employee's photo and return to the app; the photo is automatically compressed to KB before it is saved.</p>
+      <div id="faceCaptureStatus" class="face-capture-status">Starting camera…</div>
+      <div class="face-capture-actions">
+        <button id="captureFaceBtn" class="primary" type="button">CAPTURE FACE</button>
+        <button id="nativeCameraBtn" class="primary" type="button" style="display:none">OPEN DEVICE CAMERA</button>
+        <input id="nativeFaceInput" type="file" accept="image/*" capture="user" style="display:none" aria-hidden="true">
+        <button id="retakeFaceBtn" class="secondary" type="button" style="display:none">RETAKE</button>
+        <button id="confirmFaceBtn" class="primary" type="button" style="display:none">CONFIRM & CLOCK IN</button>
+      </div>
+    </div>
+  </div>
+</div>
+<main>
+<section class="cards">
+<div class="card"><span>Present Today</span><strong id="presentCount">0</strong></div><div class="card"><span>Currently Working</span><strong id="workingCount">0</strong></div><div class="card"><span>Late Today</span><strong id="lateCount">0</strong></div><div class="card"><span>On Leave Today</span><strong id="leaveCount">0</strong></div><div class="card"><span>Employees</span><strong id="employeeCount">0</strong></div><div class="card"><span>Attendance Rate</span><strong id="rateCount">0%</strong></div>
+</section>
+<section id="bestEmployeePanel" class="best-employee-panel no-print hidden" aria-label="Overall Best Employee">
+  <div class="best-employee-head"><div><h2>🏆 Overall Best Employee — Year-End Award</h2><p class="muted">Annual ranking covers <b>1 January through 31 December</b>. The winner is finalized at the end of the calendar year.</p></div><div class="actions"><label style="min-width:120px">Award Year<select id="bestEmployeeYear"></select></label><button class="secondary" id="refreshBestEmployee">REFRESH</button></div></div>
+  <div id="bestEmployeeSummary" class="best-employee-summary"><div class="best-empty">No attendance records are available yet.</div></div>
+  <div class="table-wrap"><table><thead><tr><th>Rank</th><th>Employee</th><th>Role</th><th>Score</th><th>Attendance</th><th>Punctuality</th><th>Completed</th><th>Hours</th></tr></thead><tbody id="bestEmployeeTable"></tbody></table></div>
+</section>
+<nav class="tabs"><button class="tab active" data-tab="clock">Clock In/Out</button><button class="tab admin-tab" data-tab="employees">Employees</button><button class="tab admin-tab" data-tab="records">Records</button><button class="tab admin-tab" data-tab="leave">Leave</button><button class="tab admin-tab" data-tab="reports">Reports</button><button class="tab admin-tab" data-tab="archive">Business Archiving</button><button class="tab admin-tab" data-tab="admin">Admin</button></nav>
+
+<section id="clock" class="panel active"><div class="clock-box"><div id="liveClock" class="live-clock">--:--:--</div><div id="liveDate" class="muted"></div></div><div class="secure-box"><h2>Employee Login</h2><p class="note">Each employee may clock in <b>once per day</b> and clock out <b>once per day</b>. After both actions are completed, no further attendance action is allowed that day.</p><label>Employee Code<input id="clockCode" maxlength="3" autocomplete="off"></label><button id="verifyCodeBtn" class="primary">VERIFY CODE</button><div id="employeeStatus" class="status">Enter your employee code.</div></div><div class="actions"><button id="clockInBtn" class="primary" disabled>CLOCK IN</button><button id="clockOutBtn" class="danger" disabled>CLOCK OUT</button></div><p id="clockMessage" class="message"></p></section>
+
+<section id="employees" class="panel"><div class="locked-head"><div><h2>Employee Management</h2><p class="muted">Register, edit, search and manage employees.</p></div><span class="lock-badge">ADMIN ONLY</span></div><div id="employeeGate" class="gate"><p>Enter the Admin code to open employee management.</p><div class="gate-row"><input id="employeeAdminCode" type="password" placeholder="Admin code"><button id="employeeAdminLogin" class="primary">UNLOCK</button></div><p id="employeeGateMessage" class="message"></p></div><div id="employeeContent" class="hidden"><form id="employeeForm"><input type="hidden" id="editId"><label>Full Name<input id="empName" required placeholder="e.g. Kwame Mensah"></label><label>Employee Code<input id="empCode" readonly><small class="muted">Code is exactly the first three letters of the employee's first name.</small></label><label>Department / Role<input id="empRole" required placeholder="Field Officer"></label><label>Phone Number<input id="empPhone" placeholder="+233..."></label><div class="actions"><button class="primary" type="submit">SAVE EMPLOYEE</button><button class="secondary" type="button" id="cancelEdit">CLEAR</button></div></form><div class="actions employee-list-actions no-print"><button class="secondary" id="printEmployees">PRINT EMPLOYEES</button></div><label>Search Employees<input id="employeeSearch" placeholder="Search by name, code, role or phone"></label><div class="table-wrap employee-table-wrap"><table><thead><tr><th>Name</th><th>Code</th><th>Role</th><th>Phone</th><th>Actions</th></tr></thead><tbody id="employeeTable"></tbody></table></div><div class="employee-print-title hidden"><h1>Employee List</h1><p>Printed: <span id="employeePrintDate"></span></p></div><div id="employeeHistory" class="hidden employee-history-panel" style="margin-top:15px"><div class="locked-head"><div><h3 id="historyTitle">Employee History</h3><p class="muted">Attendance history for the selected employee.</p></div></div><div class="actions no-print"><button type="button" class="secondary" id="closeHistory">CLOSE</button><button type="button" class="secondary" id="exportHistory">EXPORT CSV</button><button type="button" class="secondary" id="printHistory">PRINT / PDF</button></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Status</th></tr></thead><tbody id="historyTable"></tbody></table></div></div></div></section>
+
+<section id="records" class="panel"><div class="locked-head"><div><h2>Attendance Records</h2><p class="muted">Search, filter, export or print attendance history.</p></div><span class="lock-badge">ADMIN ONLY</span></div><div id="recordsGate" class="gate"><p>Enter the Admin code to open attendance records.</p><div class="gate-row"><input id="recordsAdminCode" type="password" placeholder="Admin code"><button id="recordsAdminLogin" class="primary">UNLOCK</button></div><p id="recordsGateMessage" class="message"></p></div><div id="recordsContent" class="hidden"><div class="record-head"><p class="muted">Stored locally on this device.</p><div class="actions no-print"><button class="secondary" id="exportCsv">Export CSV</button><button class="secondary" id="printReport">Print / PDF</button><button class="danger" id="clearRecords">Clear Attendance</button></div></div><div class="filters"><input id="searchRecords" placeholder="Search employee or code"><input id="dateFilter" type="date"><select id="statusFilter"><option value="">All statuses</option><option>Present</option><option>Late</option><option>Completed</option><option>Early Leave</option><option>Absent</option><option>Open</option></select></div><div class="weekly-graph-card"><div class="weekly-graph-head"><div><h3>Weekly Attendance Graph</h3><p id="weeklyGraphRange" class="muted">Monday–Sunday</p></div><span class="weekly-graph-note">Actual attendance records</span></div><div id="weeklyGraph" class="weekly-graph" aria-label="Weekly attendance graph"></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Employee</th><th>Code</th><th>Clock In</th><th>Clock Out</th><th>Hours</th><th>Face</th><th>Status</th></tr></thead><tbody id="recordTable"></tbody></table></div></div></section>
+
+<section id="leave" class="panel"><div class="locked-head"><div><h2>Leave & Permission</h2><p class="muted">Record approved leave or permission without affecting clock-in records.</p></div><span class="lock-badge">ADMIN ONLY</span></div><div id="leaveGate" class="gate"><p>Enter the Admin code to open leave management.</p><div class="gate-row"><input id="leaveAdminCode" type="password" placeholder="Admin code"><button id="leaveAdminLogin" class="primary">UNLOCK</button></div><p id="leaveGateMessage" class="message"></p></div><div id="leaveContent" class="hidden"><form id="leaveForm"><input type="hidden" id="leaveId"><label>Employee<select id="leaveEmployee" required></select></label><div class="filters"><label>Start Date<input id="leaveStart" type="date" required></label><label>End Date<input id="leaveEnd" type="date" required></label><label>Type<select id="leaveType"><option>Annual Leave</option><option>Sick Leave</option><option>Permission</option><option>Other</option></select></label></div><label>Reason / Note<input id="leaveReason" placeholder="Optional note"></label><div class="actions"><button class="primary">SAVE LEAVE</button><button type="button" class="secondary" id="clearLeaveForm">CLEAR</button></div></form><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Dates</th><th>Type</th><th>Reason</th><th>Actions</th></tr></thead><tbody id="leaveTable"></tbody></table></div></div></section>
+
+<section id="reports" class="panel"><div class="locked-head"><div><h2>Attendance Reports</h2><p class="muted">Daily, weekly and monthly attendance summaries.</p></div><span class="lock-badge">ADMIN ONLY</span></div><div id="reportsGate" class="gate"><p>Enter the Admin code to open reports.</p><div class="gate-row"><input id="reportsAdminCode" type="password" placeholder="Admin code"><button id="reportsAdminLogin" class="primary">UNLOCK</button></div><p id="reportsGateMessage" class="message"></p></div><div id="reportsContent" class="hidden"><div class="filters"><select id="reportPeriod"><option value="day">Today</option><option value="week">This Week</option><option value="month">This Month</option></select><input id="reportDate" type="date"><button class="secondary" id="exportReport">Export Report CSV</button><button class="secondary" id="exportReportExcel">Export Excel</button><button class="secondary" id="printAttendanceReport">Print / PDF</button></div><div class="report-grid"><div class="mini-card"><span>Attendance Entries</span><strong id="rpEntries">0</strong></div><div class="mini-card"><span>Employees Recorded</span><strong id="rpEmployees">0</strong></div><div class="mini-card"><span>Late Entries</span><strong id="rpLate">0</strong></div><div class="mini-card"><span>Absent Employees</span><strong id="rpAbsent">0</strong></div><div class="mini-card"><span>Attendance Rate</span><strong id="rpRate">0%</strong></div><div class="mini-card"><span>Total Hours</span><strong id="rpHours">0</strong></div></div><div id="reportBreakdown"></div></div></section>
+
+
+<section id="archive" class="panel">
+<h2>Business Archiving Service</h2><p class="note"><b>Unlimited archive records:</b> There is no software-imposed record-count limit. Archive metadata is stored in the browser database; practical capacity depends on available device/browser storage.</p>
+  <div class="locked-head"><div><h2>Business Archiving Service</h2><p class="muted">Digitize and organize old company records securely on this device.</p></div><span class="lock-badge">ADMIN ONLY</span></div>
+  <div id="archiveGate" class="gate"><p>Enter the Admin code to open business archiving.</p><div class="gate-row"><input id="archiveAdminCode" type="password" placeholder="Admin code"><button id="archiveAdminLogin" class="primary">UNLOCK</button></div><p id="archiveGateMessage" class="message"></p></div>
+  <div id="archiveContent" class="hidden">
+    <div class="archive-grid">
+      <div class="archive-card"><span>Total Archived Records</span><strong id="archiveTotal">0</strong></div>
+      <div class="archive-card"><span>Digitized Documents</span><strong id="archiveDigitized">0</strong></div>
+      <div class="archive-card"><span>Categories</span><strong id="archiveCategories">0</strong></div>
+      <div class="archive-card"><span>Added This Year</span><strong id="archiveThisYear">0</strong></div><div class="archive-card"><span>Needs Review</span><strong id="archiveNeedsReview">0</strong></div><div class="archive-card"><span>Favorites</span><strong id="archiveFavorites">0</strong></div>
+    </div>
+    <form id="archiveForm" class="archive-form">
+      <input type="hidden" id="archiveEditId">
+      <label>Record / Document Title<input id="archiveTitle" required placeholder="e.g. 2018 Annual Financial Report"></label>
+      <label>Record Category<select id="archiveCategory"><option>Financial Records</option><option>Human Resources</option><option>Contracts & Legal</option><option>Company Registration</option><option>Invoices & Receipts</option><option>Tax Records</option><option>Meeting Minutes</option><option>Customer Records</option><option>Project Records</option><option>Attendance Records</option><option>Other</option></select></label>
+      <label>Record Date<input id="archiveRecordDate" type="date"></label>
+      <label>Department / Office<input id="archiveDepartment" placeholder="Finance, HR, Administration..."></label>
+      <label>Reference Number<input id="archiveReference" placeholder="Optional reference / file number"></label><label>Archive Status<select id="archiveStatus"><option>Active</option><option>Needs Review</option><option>Locked</option><option>Disposed</option></select></label><label>Priority<select id="archivePriority"><option>Normal</option><option>High</option><option>Critical</option></select></label><label>Storage Location<input id="archiveLocation" placeholder="Cabinet A / Shelf 2 / Box 14"></label><label>Review / Retention Date<input id="archiveReviewDate" type="date"></label><label>Tags<input id="archiveTags" placeholder="e.g. audit, 2019, confidential"></label>
+      <label>Retention / Notes<input id="archiveNotes" placeholder="Storage notes, retention period, description"></label>
+      <label class="full">Digital File / Scan<input id="archiveFile" type="file" accept=".pdf,image/*,.doc,.docx,.xls,.xlsx,.txt,.csv"></label><small class="muted">Automatic KB compression: photos are reduced to about 250 KB when possible; other supported files are losslessly compressed when this saves space. The original file type is restored when opened or downloaded.</small>
+      <label class="full">Transcription / OCR Notes<textarea id="archiveText" rows="4" placeholder="Type or paste important text from the old record for searchable indexing."></textarea></label>
+      <div class="actions full"><button class="primary" type="submit">SAVE ARCHIVED RECORD</button><button class="secondary" type="button" id="archiveClear">CLEAR</button></div>
+    </form>
+    <div class="actions">
+      <button class="secondary" id="archiveBulkBtn">BULK ADD DOCUMENTS</button><input id="archiveBulkFiles" type="file" multiple accept=".pdf,image/*,.doc,.docx,.xls,.xlsx,.txt,.csv" style="display:none">
+      <button class="secondary" id="archiveExport">EXPORT ARCHIVE INDEX</button>
+      <button class="secondary" id="archivePrint">PRINT ARCHIVE INDEX</button>
+      <button class="danger" id="archiveClearAll">CLEAR ARCHIVE DATA</button>
+    </div>
+    <label>Search Archived Records<input id="archiveSearch" placeholder="Search title, category, department, reference, tags or transcription"></label><div class="archive-toolbar"><label>Category<select id="archiveFilterCategory"><option value="">All categories</option></select></label><label>Status<select id="archiveFilterStatus"><option value="">All statuses</option><option>Active</option><option>Needs Review</option><option>Locked</option><option>Disposed</option></select></label><label>View<select id="archiveFilterView"><option value="all">All records</option><option value="favorites">Favorites</option><option value="digitized">Digitized only</option><option value="nodigital">Index only</option></select></label><label>Sort<select id="archiveSort"><option value="newest">Newest added</option><option value="oldest">Oldest added</option><option value="recordnew">Record date newest</option><option value="title">Title A-Z</option><option value="priority">Priority</option></select></label></div><div id="archiveList"></div>
+  </div>
+</section>
+
+<section id="admin" class="panel"><div class="locked-head"><div><h2>Admin Dashboard</h2><p class="muted">Administrative controls, backup and automatic data retention.</p></div><span class="lock-badge">ADMIN ONLY</span></div><div id="adminGate" class="gate"><p>Enter the Admin code to access the dashboard.</p><div class="gate-row"><input id="adminCode" type="password" placeholder="Admin code"><button id="adminLogin" class="primary">ADMIN LOGIN</button></div><p id="adminGateMessage" class="message"></p></div><div id="adminContent" class="hidden"><div class="admin-grid"><div class="mini-card"><span>Total Employees</span><strong id="adminEmployees">0</strong></div><div class="mini-card"><span>Today's Attendance</span><strong id="adminToday">0</strong></div><div class="mini-card"><span>Currently Working</span><strong id="adminWorking">0</strong></div><div class="mini-card"><span>Total Records</span><strong id="adminRecords">0</strong></div></div><div class="feature-grid"><div class="feature-card"><span>Archived Records</span><strong id="featureArchiveCount">0</strong></div><div class="feature-card"><span>Uploaded Files</span><strong id="featureFileCount">0</strong></div><div class="feature-card"><span>Storage Used</span><strong id="featureStorageUsed">Checking…</strong></div><div class="feature-card"><span>Recent Activities</span><strong id="featureActivityCount">0</strong></div></div><div class="admin-actions"><h3>Storage Usage</h3><div class="storage-bar"><i id="storageBarFill"></i></div><p id="storageText" class="muted">Checking local storage…</p></div><div class="admin-actions"><h3>Activity History</h3><div id="activityList" class="activity-list"><p class="muted" style="padding:12px">No activity yet.</p></div><div class="actions"><button id="exportActivity" class="secondary">EXPORT ACTIVITY CSV</button><button id="clearActivity" class="danger">CLEAR ACTIVITY</button></div></div><div class="admin-actions"><h3>Data Backup & Restore</h3><p class="muted">Backups include records and the actual uploaded PDFs/files. You can verify a backup before restoring it.</p><button id="backupData" class="secondary">BACKUP DATA</button><button id="restoreBtn" class="secondary">RESTORE DATA</button><input id="restoreFile" type="file" accept="application/json" class="hidden"><div class="restore-box"><label>Restore Mode<select id="restoreMode"><option value="replace">Replace current data</option><option value="merge">Merge with current data</option></select></label><div id="restoreVerification" class="muted">No backup selected.</div></div></div><div class="admin-actions"><h3>Employee Management</h3><button id="addEmployeeBtn" class="primary">ADD EMPLOYEE</button></div><div class="admin-actions danger-zone"><h3>Danger Zone</h3><button id="resetAttendance" class="secondary">RESET ATTENDANCE DATA</button><button id="clearAllData" class="danger">CLEAR ALL DATA</button></div><div class="note"><b>Offline privacy:</b> data is stored in this browser/device. Export regular backups before clearing browser storage or changing devices.</div></div></section>
+</main><footer>Employee Attendance • Offline-first local records</footer>
+<script>
+const KEY_EMP="attendance_employees_v2",KEY_REC="attendance_records_v2",KEY_LEAVE="attendance_leave_v1",KEY_ARCHIVE="business_archive_v1";
+const ADMIN_CODE="Gad@f26",MAX_EMPLOYEE_CODE=1000;
+// Licence status is enforced by the device-licence gate below.
+function requireActiveLicense(){
+  const key=localStorage.getItem("ata_device_license_v1")||"";
+  return Boolean(key);
+}
+
+/* === LARGE-STORAGE DATA ENGINE ===
+   Main attendance data is stored in IndexedDB rather than localStorage.
+   IndexedDB can use substantially more device/browser storage and is suitable
+   for large employee lists and very large attendance histories. Existing
+   localStorage data is automatically migrated on first launch. */
+const MAIN_DB_NAME="attenda_large_storage_db_v2",MAIN_DB_VERSION=1;
+const MAIN_STORES={employees:"employees",records:"records",leaves:"leaves",activity:"activity"};
+let mainDbPromise=null,mainSaveQueue=Promise.resolve(),mainDataReady=false;
+function openMainDB(){
+  if(mainDbPromise)return mainDbPromise;
+  mainDbPromise=new Promise((resolve,reject)=>{
+    if(!window.indexedDB){reject(new Error("IndexedDB unavailable on this device/browser"));return;}
+    const req=indexedDB.open(MAIN_DB_NAME,MAIN_DB_VERSION);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      for(const store of Object.values(MAIN_STORES)){
+        if(!db.objectStoreNames.contains(store)){
+          if(store==="activity") db.createObjectStore(store,{keyPath:"id",autoIncrement:true});
+          else db.createObjectStore(store,{keyPath:"id"});
+        }
+      }
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error("Could not open ATTENDA large-storage database"));
+  });
+  return mainDbPromise;
+}
+function idbGetAll(store){return openMainDB().then(db=>new Promise((resolve,reject)=>{const tx=db.transaction(store,"readonly"),req=tx.objectStore(store).getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error||new Error("Could not read "+store));}));}
+function idbReplaceStore(store,items){return openMainDB().then(db=>new Promise((resolve,reject)=>{const tx=db.transaction(store,"readwrite"),os=tx.objectStore(store);os.clear();for(const item of items)os.put(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error("Could not save "+store));}));}
+async function loadLargeStorageData(){
+  const legacyEmp=JSON.parse(localStorage.getItem(KEY_EMP)||"[]");
+  const legacyRec=JSON.parse(localStorage.getItem(KEY_REC)||"[]");
+  const legacyLeave=JSON.parse(localStorage.getItem(KEY_LEAVE)||"[]");
+  const [dbEmp,dbRec,dbLeave]=await Promise.all([idbGetAll(MAIN_STORES.employees),idbGetAll(MAIN_STORES.records),idbGetAll(MAIN_STORES.leaves)]);
+  const hadLegacy=legacyEmp.length||legacyRec.length||legacyLeave.length;
+  employees=dbEmp.length?dbEmp:legacyEmp;
+  records=dbRec.length?dbRec:legacyRec;
+  leaves=dbLeave.length?dbLeave:legacyLeave;
+  if(!dbEmp.length&&legacyEmp.length) await idbReplaceStore(MAIN_STORES.employees,employees);
+  if(!dbRec.length&&legacyRec.length) await idbReplaceStore(MAIN_STORES.records,records.map(r=>{const x={...r};delete x.faceCapture;return x;}));
+  if(!dbLeave.length&&legacyLeave.length) await idbReplaceStore(MAIN_STORES.leaves,leaves);
+  if(hadLegacy){try{localStorage.removeItem(KEY_EMP);localStorage.removeItem(KEY_REC);localStorage.removeItem(KEY_LEAVE)}catch(e){}}
+  mainDataReady=true;
+}
+function save(){
+  const empSnapshot=employees.map(x=>({...x}));
+  const recSnapshot=records.map(r=>{const x={...r};delete x.faceCapture;return x;});
+  const leaveSnapshot=leaves.map(x=>({...x}));
+  mainSaveQueue=mainSaveQueue.then(async()=>{
+    if(!mainDataReady)return;
+    await Promise.all([
+      idbReplaceStore(MAIN_STORES.employees,empSnapshot),
+      idbReplaceStore(MAIN_STORES.records,recSnapshot),
+      idbReplaceStore(MAIN_STORES.leaves,leaveSnapshot)
+    ]);
+    for(const r of records){if(r.id&&r.faceCapture)facePut(r.id,r.faceCapture).catch(()=>{});}
+    try{localStorage.removeItem(KEY_EMP);localStorage.removeItem(KEY_REC);localStorage.removeItem(KEY_LEAVE)}catch(e){}
+  }).catch(e=>console.warn("ATTENDA large-storage save failed",e));
+  return mainSaveQueue;
+}
+let employees=[],records=[],leaves=[],archives=JSON.parse(localStorage.getItem(KEY_ARCHIVE)||"[]");
+let adminUnlocked=false,employeeAdminUnlocked=false,recordsAdminUnlocked=false,leaveAdminUnlocked=false,reportsAdminUnlocked=false,archiveAdminUnlocked=false;const $=id=>document.getElementById(id);
+
+/* === Persistent Face Photo Storage Fix ===
+   Face photographs are stored in IndexedDB instead of localStorage.
+   This keeps photos persistent across refreshes without consuming the small
+   localStorage quota used by attendance metadata. */
+const FACE_DB_NAME="employee_attendance_face_db_v1",FACE_STORE="photos";
+let faceDbPromise=null;
+function openFaceDB(){
+  if(faceDbPromise)return faceDbPromise;
+  faceDbPromise=new Promise((resolve,reject)=>{
+    if(!window.indexedDB){reject(new Error("IndexedDB unavailable"));return;}
+    const req=indexedDB.open(FACE_DB_NAME,1);
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(FACE_STORE))db.createObjectStore(FACE_STORE);};
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error("Could not open face photo storage"));
+  });
+  return faceDbPromise;
+}
+function facePut(id,data){
+  if(!id||!data)return Promise.resolve();
+  return openFaceDB().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction(FACE_STORE,"readwrite");
+    tx.objectStore(FACE_STORE).put(data,id);
+    tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error||new Error("Could not save face photo"));
+  }));
+}
+function faceGet(id){
+  return openFaceDB().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction(FACE_STORE,"readonly"), req=tx.objectStore(FACE_STORE).get(id);
+    req.onsuccess=()=>resolve(req.result||"");
+    req.onerror=()=>reject(req.error||new Error("Could not read face photo"));
+  }));
+}
+function faceDelete(id){
+  if(!id)return Promise.resolve();
+  return openFaceDB().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction(FACE_STORE,"readwrite");
+    tx.objectStore(FACE_STORE).delete(id);
+    tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error||new Error("Could not delete face photo"));
+  })).catch(()=>{});
+}
+async function hydrateFacePhotos(){
+setTimeout(()=>compressStoredFacePhotos(),700);
+  for(const r of records){
+    if(!r.faceCapture && r.id){
+      try{const saved=await faceGet(r.id);if(saved)r.faceCapture=saved;}catch(e){console.warn("Face photo read failed",e);}
+    }else if(r.faceCapture && r.id){
+      try{await facePut(r.id,r.faceCapture);}catch(e){console.warn("Face photo migration failed",e);}
+    }
+  }
+  // Migrate old localStorage photos to IndexedDB, then keep only attendance metadata there.
+  try{
+    const metadata=records.map(r=>{const x={...r};delete x.faceCapture;return x;});
+    localStorage.setItem(KEY_REC,JSON.stringify(metadata));
+  }catch(e){console.warn("Attendance metadata save failed",e);}
+}
+async function compressStoredFacePhotos(){for(const r of records){if(!r.id)continue;try{const saved=await faceGet(r.id);if(saved&&String(saved).startsWith('data:image/')){const smaller=await compressFacePhotoToKB(saved,120,480);if(smaller.length<saved.length)await facePut(r.id,smaller)}}catch(e){console.warn('Stored face photo optimization skipped',e)}}}
+async function saveFacePhotos(){
+  for(const r of records){
+    if(r.id && r.faceCapture){
+      try{await facePut(r.id,r.faceCapture);}catch(e){console.warn("Face photo save failed",e);}
+    }
+  }
+}
+
+/* === Storage Optimization: compress face photos and archived images === */
+function dataUrlToBlob(dataUrl){const parts=String(dataUrl||'').split(',');if(parts.length<2)return null;const m=parts[0].match(/^data:([^;]+);base64$/i);if(!m)return null;const bin=atob(parts[1]),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new Blob([bytes],{type:m[1]||'application/octet-stream'})}
+function blobToDataURLLocal(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error||new Error('Could not read image'));r.readAsDataURL(blob)})}
+async function compressImageBlob(blob,maxW=480,quality=.50){
+  if(!blob||!String(blob.type||'').toLowerCase().startsWith('image/'))return blob;
+  try{
+    const url=URL.createObjectURL(blob);
+    const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=url});
+    const ow=img.naturalWidth||img.width,oh=img.naturalHeight||img.height;
+    const scale=Math.min(1,maxW/ow),w=Math.max(1,Math.round(ow*scale)),h=Math.max(1,Math.round(oh*scale));
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    const ctx=c.getContext('2d',{alpha:false});ctx.drawImage(img,0,0,w,h);URL.revokeObjectURL(url);
+    const out=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',quality));
+    return out&&out.size<blob.size?out:blob;
+  }catch(e){console.warn('Image compression skipped',e);return blob}
+}
+async function compressImageDataURL(dataUrl,maxW=480,quality=.50){
+  const blob=dataUrlToBlob(dataUrl);if(!blob)return dataUrl;
+  const compressed=await compressImageBlob(blob,maxW,quality);
+  return compressed===blob?dataUrl:await blobToDataURLLocal(compressed);
+}
+
+/* Face photos: automatically compress to KB BEFORE saving the attendance record.
+   The encoder keeps reducing dimensions/quality until the photo is at or below
+   the target size, while never enlarging a small original. */
+async function compressFacePhotoToKB(source,targetKB=120,maxW=480){
+  let blob=typeof source==='string'?dataUrlToBlob(source):source;
+  if(!blob||!String(blob.type||'').toLowerCase().startsWith('image/'))return source;
+  try{
+    const url=URL.createObjectURL(blob);
+    const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=url});
+    const ow=img.naturalWidth||img.width,oh=img.naturalHeight||img.height;
+    let width=Math.min(maxW,ow),height=Math.max(1,Math.round(oh*(width/ow)));
+    let quality=.62,last=null;
+    for(let pass=0;pass<8;pass++){
+      const c=document.createElement('canvas');c.width=Math.max(1,Math.round(width));c.height=height;
+      const ctx=c.getContext('2d',{alpha:false});ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+      ctx.drawImage(img,0,0,c.width,c.height);
+      const out=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',quality));
+      if(!out)break;
+      last=out;
+      if(out.size<=targetKB*1024)break;
+      if(quality>.38){quality=Math.max(.38,quality-.07)}else{width=Math.max(320,Math.round(width*.86));height=Math.max(1,Math.round(oh*(width/ow)));quality=.50}
+    }
+    URL.revokeObjectURL(url);
+    if(!last)return source;
+    const result=typeof source==='string'?await blobToDataURLLocal(last):last;
+    return result;
+  }catch(e){console.warn('Face photo KB compression skipped',e);return source}
+}
+async function gzipBlob(blob){
+  if(!blob||typeof CompressionStream==='undefined')return {blob,compression:''};
+  try{
+    const stream=blob.stream().pipeThrough(new CompressionStream('gzip'));
+    const compressed=await new Response(stream).blob();
+    return compressed.size<blob.size?{blob:compressed,compression:'gzip'}:{blob,compression:''};
+  }catch(e){console.warn('File compression unavailable',e);return {blob,compression:''}}
+}
+async function gunzipBlob(blob,type){
+  if(!blob||typeof DecompressionStream==='undefined')return blob;
+  try{
+    const stream=blob.stream().pipeThrough(new DecompressionStream('gzip'));
+    return await new Response(stream).blob().then(b=>new Blob([b],{type:type||b.type||'application/octet-stream'}));
+  }catch(e){console.warn('Compressed archive file could not be expanded',e);return blob}
+}
+async function compressArchiveImageToKB(file,targetKB=250,maxW=1200){
+  if(!file||!String(file.type||'').toLowerCase().startsWith('image/'))return file;
+  try{
+    const url=URL.createObjectURL(file);
+    const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=url});
+    const ow=img.naturalWidth||img.width,oh=img.naturalHeight||img.height;
+    let width=Math.min(maxW,ow),height=Math.max(1,Math.round(oh*(width/ow))),quality=.62,last=null;
+    for(let pass=0;pass<10;pass++){
+      const c=document.createElement('canvas');c.width=Math.max(1,Math.round(width));c.height=height;
+      const ctx=c.getContext('2d',{alpha:false});ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,0,0,c.width,c.height);
+      const out=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',quality));
+      if(!out)break; last=out;
+      if(out.size<=targetKB*1024)break;
+      if(quality>.40)quality=Math.max(.40,quality-.06);
+      else{width=Math.max(420,Math.round(width*.88));height=Math.max(1,Math.round(oh*(width/ow)));quality=.52;}
+    }
+    URL.revokeObjectURL(url);
+    if(!last||last.size>=file.size)return file;
+    return new File([last],file.name.replace(/\.(png|jpe?g|webp|gif|bmp|heic|heif)$/i,'.jpg'),{type:'image/jpeg',lastModified:file.lastModified});
+  }catch(e){console.warn('Archive image KB compression skipped',e);return file}
+}
+async function prepareArchiveFile(file){
+  return await compressArchiveImageToKB(file,250,1200);
+}
+async function prepareArchiveStorage(file){
+  if(!file)return {blob:file,originalSize:0,storedSize:0,compression:''};
+  const originalSize=file.size;
+  // JPEG/other images are already compressed; don't gzip them.
+  if(String(file.type||'').toLowerCase().startsWith('image/'))
+    return {blob:file,originalSize,storedSize:file.size,compression:''};
+  const packed=await gzipBlob(file);
+  return {blob:packed.blob,originalSize,storedSize:packed.blob.size,compression:packed.compression};
+}
+function pad(n){return String(n).padStart(2,"0")}function now(){return new Date()}function dateStr(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}function timeStr(d){return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`}function normalizeCode(v){return String(v||"").trim().toLowerCase()}function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function hoursBetween(a,b){return Math.max(0,(new Date(b)-new Date(a))/3600000).toFixed(2)} function recordHours(r){if(!r||!r.clockIn||!r.clockOut)return 0;const stored=Number(r.hours);const calculated=Math.max(0,(new Date(r.clockOut)-new Date(r.clockIn))/3600000);return Number.isFinite(stored)&&stored>0?stored:calculated} function formatWorkedHours(r){if(!r||!r.clockIn||!r.clockOut)return "—";const mins=Math.max(0,Math.round(recordHours(r)*60));const h=Math.floor(mins/60),m=mins%60;return `${h}h ${String(m).padStart(2,"0")}m`}function todayRecords(){return records.filter(r=>r.date===dateStr(now()))}function employeeCodeFromName(name){const first=String(name||"").trim().split(/\s+/)[0]||"";return first.replace(/[^A-Za-z]/g,"").toUpperCase().slice(0,3)}function validEmployeeCode(c){return /^[a-z]{3}$/i.test(String(c||""))&&normalizeCode(c)!==normalizeCode(ADMIN_CODE)}function nextEmployeeCode(name){return employeeCodeFromName(name)}
+function msg(id,text,type){$(id).textContent=text;$(id).style.color=type==="error"?"#c93636":"#16834b"}function unlockGate(inputId,onSuccess,messageId){if($(inputId).value===ADMIN_CODE){$(inputId).value="";$(messageId).textContent="";onSuccess()}else{msg(messageId,"Incorrect Admin code.","error")}}
+function showGate(gate,content,unlocked){if(unlocked){$(gate).classList.add("hidden");$(content).classList.remove("hidden")}else{$(gate).classList.remove("hidden");$(content).classList.add("hidden")}}
+function updateClock(){const d=now();$("liveClock").textContent=timeStr(d);$("liveDate").textContent=d.toLocaleDateString(undefined,{weekday:"long",year:"numeric",month:"long",day:"numeric"})}setInterval(updateClock,1000);updateClock();
+function inLeave(empId,d=dateStr(now())){return leaves.some(l=>l.employeeId===empId&&l.start<=d&&d<=l.end)}
+function getBestAwardYear(){const el=$("bestEmployeeYear");return Number(el&&el.value)||now().getFullYear()}
+function populateBestEmployeeYears(){const years=new Set([now().getFullYear()]);records.forEach(r=>{const y=Number(String(r.date||"").slice(0,4));if(y>=2000)years.add(y)});const el=$("bestEmployeeYear");if(!el)return;const current=getBestAwardYear();el.innerHTML=[...years].sort((a,b)=>b-a).map(y=>`<option value="${y}">${y}</option>`).join("");el.value=years.has(current)?String(current):String(Math.max(...years));}
+function calculateBestEmployees(year=getBestAwardYear()){
+  const totals=new Map();
+  employees.forEach(e=>totals.set(e.id,{employee:e,days:new Set(),present:0,late:0,completed:0,hours:0,open:0}));
+  records.forEach(r=>{
+    if(Number(String(r.date||"").slice(0,4))!==Number(year))return;
+    const id=r.employeeId||employees.find(e=>e.employeeCode===r.employeeCode)?.id; if(!id||!totals.has(id))return;
+    const t=totals.get(id); t.days.add(r.date);
+    if(r.status!=="Absent") t.present++;
+    if(r.status==="Late") t.late++;
+    if(r.clockIn&&r.clockOut){t.completed++; t.hours+=recordHours(r);} else if(r.clockIn){t.open++;}
+  });
+  return [...totals.values()].map(t=>{
+    const attendance=t.days.size?Math.min(100,(t.present/t.days.size)*100):0;
+    const punctuality=t.present?Math.max(0,((t.present-t.late)/t.present)*100):0;
+    const completion=t.present?Math.min(100,(t.completed/t.present)*100):0;
+    const hours=Math.min(100,(t.hours/(Math.max(1,t.completed)*8))*100);
+    const score=Math.round(attendance*.40+punctuality*.25+completion*.20+hours*.15);
+    return {...t,attendance,punctuality,completion,hoursScore:hours,score};
+  }).sort((a,b)=>b.score-a.score||b.attendance-a.attendance||b.punctuality-a.punctuality||b.hours-a.hours);
+}
+function renderBestEmployee(){
+  const panel=$("bestEmployeePanel");
+  if(!adminUnlocked){ if(panel) panel.classList.add("hidden"); return; }
+  if(panel) panel.classList.remove("hidden");
+  populateBestEmployeeYears();
+  const year=getBestAwardYear(),ranked=calculateBestEmployees(year),summary=$("bestEmployeeSummary"),table=$("bestEmployeeTable"),today=now(),isFinal=today.getFullYear()>year||(today.getFullYear()===year&&today.getMonth()===11&&today.getDate()===31);
+  if(!ranked.length){summary.innerHTML='<div class="best-empty">No employees are registered yet.</div>';table.innerHTML='';return;}
+  const best=ranked[0];
+  if(best.days.size===0){summary.innerHTML=`<div class="best-empty">No attendance records are available for ${year}. The year-end ranking covers 1 January to 31 December.</div>`;}
+  else {const label=isFinal?'🏆 YEAR-END WINNER — FINALIZED 31 DECEMBER':'🏆 PROVISIONAL YEAR-END LEADER';summary.innerHTML=`<div class="best-winner"><div class="best-winner-badge">🏆</div><div><div class="muted">${label}</div><strong>${esc(best.employee.name)}</strong><div>${esc(best.employee.role||'')}</div><div class="best-score">${best.score}/100 overall score • ${year}</div><small>${isFinal?'Final annual result for 1 January – 31 December.':'Ranking is provisional until 31 December.'}</small></div></div>`;}
+  table.innerHTML=ranked.filter(x=>x.days.size>0).map((x,i)=>`<tr class="${i===0?'best-row':''}"><td class="rank-${i+1}">${i+1}</td><td><b>${esc(x.employee.name)}</b><br><small>${esc(x.employee.employeeCode||'')}</small></td><td>${esc(x.employee.role||'')}</td><td><b>${x.score}/100</b></td><td>${Math.round(x.attendance)}%</td><td>${Math.round(x.punctuality)}%</td><td>${Math.round(x.completion)}%</td><td>${x.hours.toFixed(1)}h</td></tr>`).join('')||'<tr><td colspan="8">No attendance records available yet.</td></tr>';
+}
+
+function renderDashboard(){const tr=todayRecords(),present=new Set(tr.map(r=>r.employeeId)).size,working=tr.filter(r=>!r.clockOut).length,late=tr.filter(r=>r.status==="Late").length,onLeave=employees.filter(e=>inLeave(e.id)).length;$("presentCount").textContent=present;$("workingCount").textContent=working;$("lateCount").textContent=late;$("leaveCount").textContent=onLeave;$("employeeCount").textContent=employees.length;$("rateCount").textContent=employees.length?Math.round((present+onLeave)/employees.length*100)+"%":"0%";renderBestEmployee();renderAdmin()}
+function getTodayEmployeeRecords(employeeId){
+const today=dateStr(now());
+return records.filter(r=>r.employeeId===employeeId && (r.date===today || (r.clockIn && dateStr(new Date(r.clockIn))===today)));
+}
+function getTodayEmployeeRecord(employeeId){
+const list=getTodayEmployeeRecords(employeeId);
+return list.length?list[list.length-1]:null;
+}
+function updateEmployeeStatus(){
+const code=normalizeCode($("clockCode").value),e=employees.find(x=>normalizeCode(x.employeeCode)===code);
+if(!e){
+$("employeeStatus").textContent=code?"Invalid employee code. Please check your code.":"Enter your employee code.";
+$("clockInBtn").disabled=true;$("clockOutBtn").disabled=true;return
+}
+const todayRecordsForEmployee=getTodayEmployeeRecords(e.id),todayRecord=todayRecordsForEmployee.length?todayRecordsForEmployee[todayRecordsForEmployee.length-1]:null;
+const open=todayRecord && !todayRecord.clockOut;
+let status;
+if(todayRecord){
+status=open?`Currently clocked in since ${new Date(todayRecord.clockIn).toLocaleTimeString()}. You can clock out once today.`:`Attendance completed today. Clock-in and clock-out are already recorded.`;
+}else{
+status=inLeave(e.id)?"Marked as on leave today.":"Not currently clocked in today."
+}
+$("employeeStatus").innerHTML=`<b>${esc(e.name)}</b> — ${status}`;
+$("clockInBtn").disabled=!!todayRecord||inLeave(e.id);
+$("clockOutBtn").disabled=!open;
+}
+$("clockCode").addEventListener("input",()=>{$("clockCode").value=$("clockCode").value.toLowerCase().replace(/\s/g,"");updateEmployeeStatus()});
+$("clockCode").addEventListener("keydown",e=>{if(e.key==="Enter")$("verifyCodeBtn").click()});
+$("verifyCodeBtn").onclick=()=>{const code=normalizeCode($("clockCode").value),e=employees.find(x=>normalizeCode(x.employeeCode)===code);if(!e||!validEmployeeCode(code)){msg("clockMessage","Invalid employee code.","error");updateEmployeeStatus();return}msg("clockMessage",`Verified: ${e.name}. You may clock in or out.`,"success");updateEmployeeStatus()};
+let faceStream=null, pendingFaceEmployee=null, pendingFaceTime=null, pendingFaceData=null, pendingClockRecordId=null;
+const FACE_PENDING_KEY="employeeAttendance.pendingFaceRecordId";
+function persistPendingFaceId(id){try{if(id)sessionStorage.setItem(FACE_PENDING_KEY,id);else sessionStorage.removeItem(FACE_PENDING_KEY)}catch(e){}}
+function recoverPendingFaceRecordId(){try{return pendingClockRecordId||sessionStorage.getItem(FACE_PENDING_KEY)||null}catch(e){return pendingClockRecordId||null}}
+
+function stopFaceCamera(){
+  if(faceStream){faceStream.getTracks().forEach(t=>t.stop());faceStream=null}
+  const v=$("faceVideo"); if(v){v.pause();v.srcObject=null}
+}
+function closeFaceCapture(){
+  // If the employee cancelled before confirming the face, remove the temporary
+  // clock-in record so a cancelled attempt never becomes attendance.
+  const pendingId=recoverPendingFaceRecordId();
+  if(pendingId){
+    records=records.filter(r=>r.id!==pendingId);
+    save();
+    pendingClockRecordId=null;
+    persistPendingFaceId(null);
+  }
+  stopFaceCamera(); pendingFaceEmployee=null; pendingFaceTime=null; pendingFaceData=null;
+  $("faceCaptureModal").classList.remove("show");
+  $("facePreview").style.display="none"; $("faceVideo").style.display="block";
+  $("captureFaceBtn").style.display=""; $("retakeFaceBtn").style.display="none"; $("confirmFaceBtn").style.display="none";
+}
+function openFaceCapture(employee){
+  pendingFaceEmployee=employee;
+  pendingFaceTime=now();
+  pendingFaceData=null;
+  const modal=$("faceCaptureModal");
+  if(!modal){msg("clockMessage","Face capture is unavailable.","error");return;}
+  modal.classList.add("show");
+  $("faceVideo").style.display="none";
+  $("facePreview").style.display="none";
+  $("captureFaceBtn").style.display="none";
+  $("retakeFaceBtn").style.display="none";
+  $("confirmFaceBtn").style.display="none";
+  $("nativeCameraBtn").style.display="block";
+  $("faceCaptureStatus").textContent="Tap OPEN DEVICE CAMERA. Take the employee's face photo, then return to the app.";
+}
+function openNativeCamera(){
+  const input=$("nativeFaceInput");
+  if(!input){msg("clockMessage","Camera is unavailable on this device.","error");return;}
+  if(!pendingFaceEmployee){msg("clockMessage","Please enter and verify the employee code first.","error");return;}
+  input.value="";
+  // This click is initiated directly by the user's button tap, which is required
+  // by Android browsers/WebViews to open the system camera/file chooser reliably.
+  input.click();
+}
+function handleNativeFaceFile(ev){
+  const file=ev.target.files&&ev.target.files[0];
+  if(!file){$("faceCaptureStatus").textContent="No photo was returned. Tap OPEN DEVICE CAMERA and try again.";return;}
+  if(!String(file.type||"").toLowerCase().startsWith("image/")){
+    msg("clockMessage","Please capture an image using the device camera.","error");
+    return;
+  }
+  if(!pendingFaceEmployee){
+    msg("clockMessage","The employee session could not be recovered. Please enter the employee code and try again.","error");
+    return;
+  }
+  $("faceCaptureStatus").textContent="Compressing photo to KB and saving…";
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    const employee=pendingFaceEmployee, clockIn=pendingFaceTime||now(), date=dateStr(clockIn);
+    const late=isLateClockIn(clockIn);
+    if(getTodayEmployeeRecords(employee.id).length){
+      msg("clockMessage","This employee has already clocked in today.","error");
+      closeFaceCapture();
+      return;
+    }
+    const data=await compressFacePhotoToKB(reader.result,120,480);
+    $("facePreview").src=data;
+    $("facePreview").style.display="block";
+    $("faceVideo").style.display="none";
+    const rec={
+      id:(crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2)),
+      employeeId:employee.id, employeeName:employee.name, employeeCode:employee.employeeCode,
+      date:date, clockIn:clockIn.toISOString(), clockOut:"", hours:"",
+      status:late?"Late":"Present", faceCapture:data, faceCapturedAt:new Date().toISOString(),
+      pendingFaceCapture:false
+    };
+    records.push(rec);
+    pendingClockRecordId=null; persistPendingFaceId(null); save();
+    if($("dateFilter")) $("dateFilter").value=date;
+    if($("statusFilter")) $("statusFilter").value="";
+    renderDashboard(); renderRecords(); updateEmployeeStatus();
+    $("faceCaptureStatus").textContent="Face captured and saved successfully.";
+    msg("clockMessage",`${employee.name} clocked in successfully.` ,"success");
+    setTimeout(()=>{
+      stopFaceCamera(); pendingFaceEmployee=null; pendingFaceTime=null; pendingFaceData=null;
+      $("faceCaptureModal").classList.remove("show");
+      $("facePreview").style.display="none";
+    },500);
+  };
+  reader.onerror=()=>{
+    $("faceCaptureStatus").textContent="The captured image could not be read. Please try again.";
+    msg("clockMessage","The camera image could not be saved. Please try again.","error");
+  };
+  reader.readAsDataURL(file);
+}
+async function captureFace(){
+  const v=$("faceVideo");
+  if(!v.videoWidth||!v.videoHeight){$("faceCaptureStatus").textContent="Camera is not ready yet.";return}
+  const canvas=document.createElement("canvas"),maxW=480;
+  const scale=Math.min(1,maxW/v.videoWidth); canvas.width=Math.round(v.videoWidth*scale); canvas.height=Math.round(v.videoHeight*scale);
+  canvas.getContext("2d").drawImage(v,0,0,canvas.width,canvas.height);
+  pendingFaceData=await compressFacePhotoToKB(canvas.toDataURL("image/jpeg",.62),120,480);
+  $("facePreview").src=pendingFaceData; $("facePreview").style.display="block"; $("faceVideo").style.display="none";
+  $("faceCaptureStatus").textContent="Face captured and automatically compressed to KB. Review the image, then confirm to save the clock-in record.";
+  $("captureFaceBtn").style.display="none"; $("retakeFaceBtn").style.display=""; $("confirmFaceBtn").style.display="";
+}
+function retakeFace(){
+  pendingFaceData=null; $("facePreview").style.display="none";
+  $("retakeFaceBtn").style.display="none"; $("confirmFaceBtn").style.display="none";
+  const hasLiveCamera=!!faceStream;
+  if(hasLiveCamera){
+    $("faceVideo").style.display="block"; $("captureFaceBtn").style.display=""; $("captureFaceBtn").disabled=false; $("nativeCameraBtn").style.display="none";
+    $("faceCaptureStatus").textContent="Camera ready. Capture the employee's face again.";
+  }else{
+    $("faceVideo").style.display="none"; $("captureFaceBtn").style.display="none"; $("nativeCameraBtn").style.display="";
+    $("faceCaptureStatus").textContent="Tap OPEN DEVICE CAMERA to capture the employee's face again.";
+  }
+}
+function confirmFaceClockIn(){
+  if(!pendingFaceEmployee||!pendingFaceData){$("faceCaptureStatus").textContent="Please capture the employee's face first.";return}
+  const employee=pendingFaceEmployee;
+  const clockIn=pendingFaceTime||now();
+  const date=dateStr(clockIn);
+  const late=isLateClockIn(clockIn);
+
+  // Create the attendance record only after the camera capture succeeds.
+  // No temporary record lookup is required, so Android camera handoff cannot
+  // cause a "clock-in record could not be found" error.
+  const rec={
+    id:crypto.randomUUID(), employeeId:employee.id, employeeName:employee.name,
+    employeeCode:employee.employeeCode, date:date, clockIn:clockIn.toISOString(),
+    clockOut:"", hours:"", status:late?"Late":"Present",
+    faceCapture:pendingFaceData, faceCapturedAt:new Date().toISOString(),
+    pendingFaceCapture:false
+  };
+  records.push(rec);
+  pendingClockRecordId=null;
+  persistPendingFaceId(null);
+  save();
+  if($("dateFilter")) $("dateFilter").value=date;
+  if($("statusFilter")) $("statusFilter").value="";
+  renderDashboard(); renderRecords(); updateEmployeeStatus();
+  stopFaceCamera(); pendingFaceEmployee=null; pendingFaceTime=null; pendingFaceData=null;
+  $("faceCaptureModal").classList.remove("show");
+  $("facePreview").style.display="none"; $("faceVideo").style.display="block";
+  $("captureFaceBtn").style.display=""; $("retakeFaceBtn").style.display="none"; $("confirmFaceBtn").style.display="none";
+  msg("clockMessage",`${employee.name} clocked in successfully.` ,"success");
+}
+
+function isLateClockIn(dt){ return dt.getHours()>7 || (dt.getHours()===7 && (dt.getMinutes()>0 || dt.getSeconds()>0 || dt.getMilliseconds()>0)); }
+
+function clockAction(type){
+  
+  const e=employees.find(x=>normalizeCode(x.employeeCode)===normalizeCode($("clockCode").value));
+  if(!e){msg("clockMessage","Please enter a valid employee code.","error");return}
+  if(inLeave(e.id)){msg("clockMessage","This employee is marked on leave today.","error");return}
+  if(type==="in"){
+    const employeeTodayRecords=getTodayEmployeeRecords(e.id);
+    if(employeeTodayRecords.length>0){msg("clockMessage","This employee has already clocked in today. Only ONE clock-in and ONE clock-out are allowed per day.","error");updateEmployeeStatus();return}
+    openFaceCapture(e);
+    return;
+  }
+  const d=now(),todayRecord=getTodayEmployeeRecord(e.id);
+  if(!todayRecord){msg("clockMessage","No clock-in exists for today. Clock-out is only available after today's clock-in.","error");updateEmployeeStatus();return}
+  if(todayRecord.clockOut){msg("clockMessage","This employee has already clocked out today. Only ONE clock-out is allowed per day.","error");updateEmployeeStatus();return}
+  todayRecord.clockOut=d.toISOString();todayRecord.hours=recordHours(todayRecord).toFixed(2);todayRecord.status=todayRecord.status==="Late"?"Late":"Completed";
+  save();updateEmployeeStatus();renderDashboard();renderRecords();renderReports();
+  msg("clockMessage",`${e.name} clocked out. Hours worked: ${todayRecord.hours}. Clock-out is complete for today.`,"success");
+}
+$("clockInBtn").onclick=()=>clockAction("in");$("clockOutBtn").onclick=()=>clockAction("out");
+$("faceCloseBtn").onclick=closeFaceCapture;
+$("captureFaceBtn").onclick=captureFace;
+$("nativeCameraBtn").onclick=openNativeCamera;
+$("nativeFaceInput").addEventListener("change",handleNativeFaceFile);
+$("retakeFaceBtn").onclick=retakeFace;
+$("confirmFaceBtn").onclick=confirmFaceClockIn;
+
+function renderEmployees(){const q=($("employeeSearch")?.value||"").toLowerCase();$("employeeCount").textContent=employees.length;$("employeeTable").innerHTML=employees.filter(e=>[e.name,e.employeeCode,e.role,e.phone].join(" ").toLowerCase().includes(q)).map(e=>`<tr><td>${esc(e.name)}</td><td><b>${esc(e.employeeCode)}</b></td><td>${esc(e.role)}</td><td>${esc(e.phone||"")}</td><td><button type="button" class="secondary small-btn employee-history-btn" data-history-id="${esc(e.id)}">History</button> <button type="button" class="secondary small-btn" onclick="editEmployee('${e.id}')">Edit</button> <button type="button" class="danger small-btn" onclick="deleteEmployee('${e.id}')">Delete</button></td></tr>`).join("")||'<tr><td colspan="5">No employees found.</td></tr>'}
+$("printEmployees").onclick=()=>{if(!employeeAdminUnlocked)return;document.body.classList.remove("print-history");$("employees").classList.add("print-employees");$("employeePrintDate").textContent=new Date().toLocaleString();window.print();setTimeout(()=>{$("employees").classList.remove("print-employees")},500)};$("employeeSearch").oninput=renderEmployees;$("employeeAdminLogin").onclick=()=>unlockGate("employeeAdminCode",()=>{employeeAdminUnlocked=true;showGate("employeeGate","employeeContent",true);renderEmployees()},"employeeGateMessage");$("employeeAdminCode").onkeydown=e=>{if(e.key==="Enter")$("employeeAdminLogin").click()};
+$("empName").addEventListener("input",()=>{$("empCode").value=employeeCodeFromName($("empName").value)});$("employeeForm").onsubmit=e=>{e.preventDefault();let id=$("editId").value||crypto.randomUUID(),name=$("empName").value.trim(),code=employeeCodeFromName(name),obj={id,name,employeeCode:normalizeCode(code),role:$("empRole").value.trim(),phone:$("empPhone").value.trim()};if(!obj.name||!obj.role||obj.employeeCode.length!==3||!validEmployeeCode(obj.employeeCode))return alert("The employee code must be exactly the first three letters of the employee's first name.");if(employees.some(x=>x.id!==id&&normalizeCode(x.employeeCode)===obj.employeeCode))return alert("That first-three-letter code is already assigned to another employee. The code must remain unique.");const i=employees.findIndex(x=>x.id===id);if(i>=0)employees[i]=obj;else employees.push(obj);save();e.target.reset();$("editId").value="";$("empCode").value="";renderEmployees();renderDashboard()};
+window.editEmployee=id=>{const e=employees.find(x=>x.id===id);if(!e)return;$("editId").value=e.id;$("empName").value=e.name;$("empCode").value=e.employeeCode;$("empRole").value=e.role;$("empPhone").value=e.phone||""};window.deleteEmployee=id=>{if(records.some(r=>r.employeeId===id))return alert("This employee has attendance records. Clear those records first if necessary.");if(confirm("Delete this employee?")){employees=employees.filter(e=>e.id!==id);leaves=leaves.filter(l=>l.employeeId!==id);save();renderEmployees();renderDashboard();populateLeaveEmployees()}};$("cancelEdit").onclick=()=>{$("employeeForm").reset();$("editId").value="";$("empCode").value=""};
+// Reliable History action: use event delegation because employee rows are rebuilt by renderEmployees().
+$("employeeTable").addEventListener("click",e=>{
+  const btn=e.target.closest(".employee-history-btn");
+  if(!btn)return;
+  e.preventDefault();
+  e.stopPropagation();
+  viewEmployeeHistory(btn.dataset.historyId);
+});
+window.viewEmployeeHistory=viewEmployeeHistory;
+
+function excelDownload(rows,name){const escXml=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");const xml='<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Attendance"><Table>'+rows.map(r=>'<Row>'+r.map(v=>'<Cell><Data ss:Type="String">'+escXml(v)+'</Data></Cell>').join('')+'</Row>').join('')+'</Table></Worksheet></Workbook>';const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([xml],{type:"application/vnd.ms-excel"}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function viewEmployeeHistory(id){
+ const e=employees.find(x=>x.id===id); if(!e)return;
+ const list=records.filter(r=>r.employeeId===id).slice().sort((a,b)=>b.date.localeCompare(a.date)||String(b.clockIn||'').localeCompare(String(a.clockIn||'')));
+ $("historyTitle").textContent=`${e.name} — Daily Attendance Records`;
+ const grouped={}; list.forEach(r=>(grouped[r.date]??=[]).push(r));
+ const dates=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
+ $("historyTable").innerHTML=dates.map(d=>`<tr class="daily-record-separator"><th colspan="5">DAILY RECORD — ${esc(d)}</th></tr>${grouped[d].map(r=>`<tr><td>${esc(r.date)}</td><td>${new Date(r.clockIn).toLocaleTimeString()}</td><td>${r.clockOut?new Date(r.clockOut).toLocaleTimeString():"—"}</td><td>${formatWorkedHours(r)}</td><td><span class="pill ${r.status==='Late'?'late':r.clockOut?'present':'open'}">${esc(r.status||'Open')}</span></td></tr>`).join("")}`).join("")||'<tr><td colspan="5">No attendance history.</td></tr>';
+ $("employeeHistory").classList.remove('hidden');
+ $("exportHistory").onclick=()=>csvDownload([["Date","Clock In","Clock Out","Hours","Status"],...list.map(r=>[r.date,new Date(r.clockIn).toLocaleString(),r.clockOut?new Date(r.clockOut).toLocaleString():"",recordHours(r).toFixed(2),r.status||"Present"])],`attendance-history-${normalizeCode(e.employeeCode)}-${dateStr(now())}.csv`);
+ $("printHistory").onclick=()=>{if(!employeeAdminUnlocked)return;document.body.classList.remove('print-employees');$("employees").classList.add('print-history');window.print();setTimeout(()=>$("employees").classList.remove('print-history'),500)};
+}
+$("closeHistory").onclick=()=>$("employeeHistory").classList.add("hidden");
+$("darkModeBtn").onclick=()=>{document.body.classList.toggle("dark-mode");localStorage.setItem("attendance_dark_mode",document.body.classList.contains("dark-mode")?"1":"0");$("darkModeBtn").textContent=document.body.classList.contains("dark-mode")?"LIGHT MODE":"DARK MODE"};if(localStorage.getItem("attendance_dark_mode")==="1"){document.body.classList.add("dark-mode");$("darkModeBtn").textContent="LIGHT MODE"}
+function filteredRecords(){const q=($("searchRecords")?.value||"").toLowerCase(),d=$("dateFilter")?.value||"",s=$("statusFilter")?.value||"";return records.filter(r=>(!d||r.date===d)&&(!q||r.employeeName.toLowerCase().includes(q)||normalizeCode(r.employeeCode).includes(q))&&(!s||(s==="Open"?!r.clockOut:s==="Completed"?!!r.clockOut:r.status===s)))}
+function getWeekStart(dateValue){
+ const d=new Date((dateValue||dateStr(now()))+"T00:00:00");
+ const day=(d.getDay()+6)%7;
+ d.setDate(d.getDate()-day);
+ return d;
+}
+function renderWeeklyGraph(sourceRecords){
+ const anchor=$("dateFilter")?.value||dateStr(now());
+ const start=getWeekStart(anchor), days=[];
+ for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);days.push(dateStr(d));}
+ const counts=days.map(d=>sourceRecords.filter(r=>r.date===d).length);
+ const max=Math.max(1,...counts);
+ const end=new Date(start);end.setDate(start.getDate()+6);
+ $("weeklyGraphRange").textContent=`${start.toLocaleDateString()} — ${end.toLocaleDateString()} (Monday–Sunday)`;
+ $("weeklyGraph").innerHTML=days.map((d,i)=>{const label=new Date(d+"T00:00:00").toLocaleDateString(undefined,{weekday:'short'});const h=counts[i]?Math.max(5,Math.round(counts[i]/max*100)):0;return `<div class="weekly-bar-col"><div class="weekly-bar-value">${counts[i]}</div><div class="weekly-bar-track"><div class="weekly-bar" style="height:${h}%"></div></div><div class="weekly-bar-label">${label}</div></div>`}).join('');
+}
+function renderRecords(){
+ if(!recordsAdminUnlocked)return;
+ const list=filteredRecords().slice().sort((a,b)=>b.date.localeCompare(a.date)||String(b.clockIn||'').localeCompare(String(a.clockIn||'')));
+ renderWeeklyGraph(list);
+ const grouped={}; list.forEach(r=>(grouped[r.date]??=[]).push(r));
+ const dates=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
+ $("recordTable").innerHTML=dates.map(d=>`<tr class="daily-record-separator"><th colspan="8">DAILY RECORD — ${esc(d)}</th></tr>${grouped[d].map(r=>{
+   const emp=employees.find(x=>x.id===r.employeeId);
+   const displayName=r.employeeName||emp?.name||'Unknown employee';
+   const displayCode=r.employeeCode||emp?.employeeCode||'';
+   const displayDate=r.date||(r.clockIn?dateStr(new Date(r.clockIn)):dateStr(now()));
+   return `<tr><td>${esc(displayDate)}</td><td>${esc(displayName)}</td><td><b>${esc(displayCode)}</b></td><td>${r.clockIn?new Date(r.clockIn).toLocaleTimeString():"—"}</td><td>${r.clockOut?new Date(r.clockOut).toLocaleTimeString():"—"}</td><td>${formatWorkedHours(r)}</td><td>${r.faceCapture?`<img class="face-thumb" src="${r.faceCapture}" alt="Employee face">`:"—"}</td><td><span class="pill ${r.status==='Late'?'late':r.clockOut?'present':'open'}">${esc(r.status||'Open')}</span></td></tr>`;
+ }).join('')}`).join('')||'<tr><td colspan="8">No attendance records found.</td></tr>';
+}
+// Main records no longer use localStorage events. Refresh from IndexedDB when the
+// app regains focus so a second open tab can see changes without a storage quota dependency.
+window.addEventListener('focus',async()=>{
+  if(!mainDataReady)return;
+  try{employees=await idbGetAll(MAIN_STORES.employees);records=await idbGetAll(MAIN_STORES.records);leaves=await idbGetAll(MAIN_STORES.leaves);await hydrateFacePhotos();renderAll();}catch(e){}
+});
+window.addEventListener('focus',()=>{ if(recordsAdminUnlocked) renderRecords(); });
+["searchRecords","dateFilter","statusFilter"].forEach(id=>$(id).addEventListener(id==="searchRecords"?"input":"change",renderRecords));$("recordsAdminLogin").onclick=()=>unlockGate("recordsAdminCode",()=>{recordsAdminUnlocked=true;showGate("recordsGate","recordsContent",true);renderRecords()},"recordsGateMessage");$("recordsAdminCode").onkeydown=e=>{if(e.key==="Enter")$("recordsAdminLogin").click()};
+function csvDownload(rows,name){const csv=rows.map(r=>r.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\r\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+$("exportCsv").onclick=()=>{const list=filteredRecords();csvDownload([["Date","Employee","Employee Code","Clock In","Clock Out","Hours","Face Captured","Status"],...list.map(r=>[r.date,r.employeeName,r.employeeCode,new Date(r.clockIn).toLocaleString(),r.clockOut?new Date(r.clockOut).toLocaleString():"",recordHours(r).toFixed(2),r.faceCapture?"Yes":"No",r.status||"Present"])],`attendance-records-${dateStr(now())}.csv`)};$("printReport").onclick=()=>{document.body.classList.add("print-records");window.print();setTimeout(()=>document.body.classList.remove("print-records"),700)};$("clearRecords").onclick=()=>{if(confirm("Delete ALL attendance records? This cannot be undone.")){records=[];save();renderRecords();renderDashboard();renderReports()}};
+function populateLeaveEmployees(){const s=$("leaveEmployee");s.innerHTML=employees.map(e=>`<option value="${esc(e.id)}">${esc(e.name)} (${esc(e.employeeCode)})</option>`).join("")||'<option value="">No employees</option>'}function renderLeaves(){if(!leaveAdminUnlocked)return;$("leaveTable").innerHTML=leaves.slice().sort((a,b)=>b.start.localeCompare(a.start)).map(l=>`<tr><td>${esc(l.employeeName)}</td><td>${l.start} → ${l.end}</td><td><span class="pill leave">${esc(l.type)}</span></td><td>${esc(l.reason||"")}</td><td><button class="danger small-btn" onclick="deleteLeave('${l.id}')">Delete</button></td></tr>`).join("")||'<tr><td colspan="5">No leave records.</td></tr>'}window.deleteLeave=id=>{if(confirm("Delete this leave record?")){leaves=leaves.filter(l=>l.id!==id);save();renderLeaves();renderDashboard();updateEmployeeStatus()}};
+$("leaveAdminLogin").onclick=()=>unlockGate("leaveAdminCode",()=>{leaveAdminUnlocked=true;showGate("leaveGate","leaveContent",true);populateLeaveEmployees();renderLeaves()},"leaveGateMessage");$("leaveAdminCode").onkeydown=e=>{if(e.key==="Enter")$("leaveAdminLogin").click()};$("leaveForm").onsubmit=e=>{e.preventDefault();const emp=employees.find(x=>x.id===$("leaveEmployee").value),start=$("leaveStart").value,end=$("leaveEnd").value;if(!emp||!start||!end||end<start)return alert("Please select a valid employee and date range.");leaves.push({id:crypto.randomUUID(),employeeId:emp.id,employeeName:emp.name,start,end,type:$("leaveType").value,reason:$("leaveReason").value.trim()});save();e.target.reset();populateLeaveEmployees();renderLeaves();renderDashboard();updateEmployeeStatus()};$("clearLeaveForm").onclick=()=>$("leaveForm").reset();
+function periodDates(){const base=new Date($("reportDate").value||dateStr(now())+"T00:00:00"),p=$("reportPeriod").value;let start=new Date(base),end=new Date(base);if(p==="week"){const day=(base.getDay()+6)%7;start.setDate(base.getDate()-day);end=new Date(start);end.setDate(start.getDate()+6)}else if(p==="month"){start=new Date(base.getFullYear(),base.getMonth(),1);end=new Date(base.getFullYear(),base.getMonth()+1,0)}return [dateStr(start),dateStr(end)]}function renderReports(){if(!reportsAdminUnlocked)return;const [start,end]=periodDates(),list=records.filter(r=>r.date>=start&&r.date<=end),recorded=new Set(list.map(r=>r.employeeId)),emps=recorded.size,late=list.filter(r=>r.status==="Late").length,hours=list.reduce((a,r)=>a+recordHours(r),0),days=Math.max(1,Math.round((new Date(end)-new Date(start))/86400000)+1),expected=employees.length*days,rate=expected?Math.min(100,(list.length/expected)*100):0,absent=Math.max(0,employees.length-recorded.size);$("rpEntries").textContent=list.length;$("rpEmployees").textContent=emps;$("rpLate").textContent=late;$("rpAbsent").textContent=absent;$("rpRate").textContent=rate.toFixed(1)+"%";$("rpHours").textContent=hours.toFixed(2);const by={};list.forEach(r=>{by[r.employeeId]??={name:r.employeeName,total:0,late:0,hours:0};by[r.employeeId].total++;if(r.status==="Late")by[r.employeeId].late++;by[r.employeeId].hours+=recordHours(r)});const vals=Object.values(by);$("reportBreakdown").innerHTML=`<h3>${start} to ${end}</h3><p class="muted">Absent employees means employees with no attendance entry in the selected period. Attendance rate is based on recorded entries versus employee-days.</p>${vals.map(x=>`<div style="margin:12px 0"><b>${esc(x.name)}</b> — ${x.total} entries, ${x.hours.toFixed(2)} hours, ${x.late} late<div class="bar"><i style="width:${Math.min(100,x.total/Math.max(1,days)*100)}%"></i></div></div>`).join("")||'<p class="muted">No records in this period.</p>'}`}
+$("reportsAdminLogin").onclick=()=>unlockGate("reportsAdminCode",()=>{reportsAdminUnlocked=true;showGate("reportsGate","reportsContent",true);$("reportDate").value=dateStr(now());renderReports()},"reportsGateMessage");$("reportsAdminCode").onkeydown=e=>{if(e.key==="Enter")$("reportsAdminLogin").click()};$("reportPeriod").onchange=renderReports;$("reportDate").onchange=renderReports;$("exportReport").onclick=()=>{const [start,end]=periodDates(),list=records.filter(r=>r.date>=start&&r.date<=end);csvDownload([["Date","Employee","Code","Clock In","Clock Out","Hours","Status"],...list.map(r=>[r.date,r.employeeName,r.employeeCode,r.clockIn,r.clockOut,recordHours(r).toFixed(2),r.status])],`attendance-report-${start}-to-${end}.csv`)};$("exportReportExcel").onclick=()=>{const [start,end]=periodDates(),list=records.filter(r=>r.date>=start&&r.date<=end);excelDownload([["Date","Employee","Code","Clock In","Clock Out","Hours","Status"],...list.map(r=>[r.date,r.employeeName,r.employeeCode,r.clockIn,r.clockOut,recordHours(r).toFixed(2),r.status])],`attendance-report-${start}-to-${end}.xls`)};$("printAttendanceReport").onclick=()=>window.print();
+
+
+const ARCHIVE_DB="business_archive_files_v2";
+function archiveDB(){
+  return new Promise((resolve,reject)=>{const r=indexedDB.open(ARCHIVE_DB,2);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains("files"))db.createObjectStore("files");if(!db.objectStoreNames.contains("records"))db.createObjectStore("records");};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
+}
+async function archiveLoadRecords(){const db=await archiveDB();return new Promise((resolve,reject)=>{const tx=db.transaction("records","readonly"),r=tx.objectStore("records").getAll();r.onsuccess=()=>{const v=r.result||[];db.close();resolve(v)};r.onerror=()=>{db.close();reject(r.error)}})}
+async function archiveSaveRecords(){const db=await archiveDB();return new Promise((resolve,reject)=>{const tx=db.transaction("records","readwrite"),store=tx.objectStore("records");store.clear();archives.forEach(x=>store.put(x,x.id));tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
+async function archiveDeleteRecord(id){const db=await archiveDB();return new Promise((resolve,reject)=>{const tx=db.transaction("records","readwrite");tx.objectStore("records").delete(id);tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}
+async function archiveClearRecords(){try{const db=await archiveDB();return new Promise((resolve,reject)=>{const tx=db.transaction("records","readwrite");tx.objectStore("records").clear();tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}catch(e){}}
+
+async function archivePutFile(id,file){
+  const db=await archiveDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction("files","readwrite");
+    const req=tx.objectStore("files").put(file,id);
+    req.onerror=()=>{try{db.close()}catch(e){};reject(req.error||new Error("Unable to store digital file."))};
+    tx.oncomplete=()=>{try{db.close()}catch(e){};resolve()};
+    tx.onerror=()=>{try{db.close()}catch(e){};reject(tx.error||new Error("Unable to store digital file."))};
+  });
+}
+async function archiveGetFile(id){
+  const db=await archiveDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction("files","readonly"),r=tx.objectStore("files").get(id);
+    r.onsuccess=async()=>{
+      const v=r.result;db.close();
+      try{
+        const meta=archives.find(a=>a.id===id);
+        if(v&&meta&&meta.compression==='gzip') resolve(await gunzipBlob(v,meta.fileType||'application/octet-stream'));
+        else resolve(v);
+      }catch(e){reject(e)}
+    };
+    r.onerror=()=>{db.close();reject(r.error)}
+  })
+}
+async function archiveDeleteFile(id){try{const db=await archiveDB();return new Promise((resolve,reject)=>{const tx=db.transaction("files","readwrite");tx.objectStore("files").delete(id);tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}catch(e){}}
+async function archiveClearFiles(){try{const db=await archiveDB();return new Promise((resolve,reject)=>{const tx=db.transaction("files","readwrite");tx.objectStore("files").clear();tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{db.close();reject(tx.error)}})}catch(e){}}
+function archiveDateValue(v){return v||dateStr(now())}
+function renderArchive(){
+  if(!archiveAdminUnlocked)return;
+  $("archiveTotal").textContent=archives.length;
+  $("archiveDigitized").textContent=archives.filter(x=>x.fileName).length;
+  $("archiveCategories").textContent=new Set(archives.map(x=>x.category).filter(Boolean)).size;
+  const y=String(now().getFullYear());$("archiveThisYear").textContent=archives.filter(x=>String(x.createdAt||"").slice(0,4)===y).length;
+  const q=String($("archiveSearch").value||"").trim().toLowerCase();
+  const list=archives.filter(x=>!q||[x.title,x.category,x.department,x.reference,x.notes,x.text,x.recordDate,x.fileName].join(" ").toLowerCase().includes(q));
+  $("archiveList").innerHTML=list.map(x=>`<article class="archive-item">
+    <h3>${esc(x.title)}</h3>
+    <div class="archive-meta"><span class="archive-badge">${esc(x.category)}</span>${x.recordDate?`<span>Record date: ${esc(x.recordDate)}</span>`:""}${x.department?`<span>Department: ${esc(x.department)}</span>`:""}${x.reference?`<span>Ref: ${esc(x.reference)}</span>`:""}</div>
+    ${x.fileName?`<div class="digital-file-box"><span class="digital-file-name">📄 <b>${esc(x.fileName)}</b> <span class="muted">(${Math.max(1,Math.round((x.fileSize||0)/1024))} KB)</span></span><span class="archive-badge">DOWNLOADABLE</span></div>`:"<p class=\"muted\">No digital file attached — indexed record only.</p>"}
+    ${x.text?`<p>${esc(x.text).slice(0,600)}${x.text.length>600?"…":""}</p>`:""}${x.notes?`<p class="muted">${esc(x.notes)}</p>`:""}
+    ${x.preview?`<img class="archive-preview" src="${x.preview}" alt="Document preview">`:""}
+    <div class="actions">${x.fileName?`<button class="secondary" data-archive-download="${esc(x.id)}">DOWNLOAD FILE</button><button class="secondary" data-archive-open="${esc(x.id)}">OPEN FILE</button>`:""}<button class="secondary" data-archive-edit="${esc(x.id)}">EDIT</button><button class="danger" data-archive-delete="${esc(x.id)}">DELETE</button></div>
+  </article>`).join("")||'<p class="muted">No archived records found.</p>';
+  document.querySelectorAll("[data-archive-edit]").forEach(b=>b.onclick=()=>editArchive(b.dataset.archiveEdit));
+  document.querySelectorAll("[data-archive-delete]").forEach(b=>b.onclick=()=>deleteArchive(b.dataset.archiveDelete));
+  document.querySelectorAll("[data-archive-download]").forEach(b=>b.onclick=()=>downloadArchive(b.dataset.archiveDownload,false));
+  document.querySelectorAll("[data-archive-open]").forEach(b=>b.onclick=()=>downloadArchive(b.dataset.archiveOpen,true));
+}
+function clearArchiveForm(){$("archiveForm").reset();$("archiveEditId").value="";$("archiveRecordDate").value="";$("archiveFile").value=""}
+function editArchive(id){const x=archives.find(a=>a.id===id);if(!x)return;$("archiveEditId").value=x.id;$("archiveTitle").value=x.title||"";$("archiveCategory").value=x.category||"Other";$("archiveRecordDate").value=x.recordDate||"";$("archiveDepartment").value=x.department||"";$("archiveReference").value=x.reference||"";$("archiveNotes").value=x.notes||"";$("archiveText").value=x.text||"";window.scrollTo({top:0,behavior:"smooth"})}
+async function downloadArchive(id,openInstead=false){
+  const x=archives.find(a=>a.id===id); if(!x)return;
+  try{
+    const file=await archiveGetFile(id);
+    if(!file){alert("The digital file is not available on this device.");return}
+    const blob=file instanceof Blob?file:new Blob([file],{type:x.fileType||"application/octet-stream"});
+    const url=URL.createObjectURL(blob);
+    if(openInstead){
+      const opened=window.open(url,"_blank","noopener,noreferrer");
+      if(!opened){
+        const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.click();
+      }
+      setTimeout(()=>URL.revokeObjectURL(url),60000);
+      return;
+    }
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=x.fileName||"archived-document";
+    a.rel="noopener";
+    a.style.display="none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),10000);
+  }catch(e){
+    console.error("Digital file download failed",e);
+    alert("The digital file could not be downloaded. Please try again on this device.");
+  }
+}
+async function deleteArchive(id){if(!confirm("Delete this archived record from this device?"))return;await archiveDeleteFile(id);await archiveDeleteRecord(id);archives=archives.filter(x=>x.id!==id);renderArchive()}
+$("archiveForm").onsubmit=async e=>{e.preventDefault();const file=$("archiveFile").files[0],id=$("archiveEditId").value;const old=archives.find(x=>x.id===id);let preview=old?.preview||"",fileName=old?.fileName||"",fileSize=old?.fileSize||0,fileType=old?.fileType||"";
+if(file){fileName=file.name;fileSize=file.size;fileType=file.type;if(file.type.startsWith("image/")&&file.size<=2*1024*1024){preview=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(file)})}}
+const item={id:id||crypto.randomUUID(),title:$("archiveTitle").value.trim(),category:$("archiveCategory").value,recordDate:$("archiveRecordDate").value,department:$("archiveDepartment").value.trim(),reference:$("archiveReference").value.trim(),notes:$("archiveNotes").value.trim(),text:$("archiveText").value.trim(),fileName,fileSize,fileType,preview,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+if(file)await archivePutFile(item.id,file);archives=id?archives.map(x=>x.id===id?item:x):[item,...archives];await archiveSaveRecords();clearArchiveForm();renderArchive();alert("Archived record saved.")}
+$("archiveClear").onclick=clearArchiveForm;$("archiveSearch").oninput=renderArchive;
+$("archiveAdminLogin").onclick=()=>unlockGate("archiveAdminCode",()=>{archiveAdminUnlocked=true;showGate("archiveGate","archiveContent",true);renderArchive()},"archiveGateMessage");
+$("archiveAdminCode").onkeydown=e=>{if(e.key==="Enter")$("archiveAdminLogin").click()};
+$("archiveExport").onclick=()=>{const rows=[["Title","Category","Record Date","Department","Reference","Digital File","Notes","Transcription/OCR","Created"],...archives.map(x=>[x.title,x.category,x.recordDate,x.department,x.reference,x.fileName,x.notes,x.text,x.createdAt])];csvDownload(rows,`business-archive-index-${dateStr(now())}.csv`)};
+$("archivePrint").onclick=()=>window.print();
+$("archiveClearAll").onclick=async()=>{if(confirm("Permanently clear all business archive records from this device?")){archives=[];await archiveClearFiles();await archiveClearRecords();renderArchive()}};
+function renderAdmin(){if(!adminUnlocked)return;const tr=todayRecords();$("adminEmployees").textContent=employees.length;$("adminToday").textContent=new Set(tr.map(r=>r.employeeId)).size;$("adminWorking").textContent=tr.filter(r=>!r.clockOut).length;$("adminRecords").textContent=records.length}
+$("adminLogin").onclick=()=>unlockGate("adminCode",()=>{adminUnlocked=true;showGate("adminGate","adminContent",true);renderAdmin();renderBestEmployee()},"adminGateMessage");$("adminCode").onkeydown=e=>{if(e.key==="Enter")$("adminLogin").click()};$("addEmployeeBtn").onclick=()=>{document.querySelector('.tab[data-tab="employees"]').click();employeeAdminUnlocked=true;showGate("employeeGate","employeeContent",true);$("employeeForm").reset();$("editId").value="";$("empCode").value="";$("empName").focus()};
+async function blobToDataURL(blob){return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.onerror=()=>reject(fr.error||new Error("Unable to read file"));fr.readAsDataURL(blob)})}
+function dataURLToBlob(dataURL){const parts=String(dataURL||"").split(",");if(parts.length<2)throw new Error("Invalid backup file data");const meta=parts[0];const binary=atob(parts.slice(1).join(","));const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);const match=meta.match(/^data:([^;]+)?;base64$/i);return new Blob([bytes],{type:(match&&match[1])||"application/octet-stream"})}
+async function backup(){try{const files=[];for(const x of archives){if(!x.fileName)continue;const file=await archiveGetFile(x.id);if(file){const blob=file instanceof Blob?file:new Blob([file],{type:x.fileType||"application/octet-stream"});files.push({id:x.id,fileName:x.fileName,fileType:x.fileType||blob.type||"application/octet-stream",fileSize:blob.size,data:await blobToDataURL(blob)})}}const payload={app:"Employee Attendance + Business Archiving",version:5,exportedAt:new Date().toISOString(),employees,records,leaves,archives,archiveFiles:files};const json=JSON.stringify(payload);const a=document.createElement("a");const url=URL.createObjectURL(new Blob([json],{type:"application/json"}));a.href=url;a.download=`employee-attendance-backup-${dateStr(now())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);alert(`Complete backup created. ${files.length} uploaded file(s) included.`)}catch(e){console.error("Backup failed",e);alert("The backup could not be created. Please try again.")}}
+async function restore(file){const fr=new FileReader();fr.onload=async()=>{try{const p=JSON.parse(fr.result);if(!Array.isArray(p.employees)||!Array.isArray(p.records)||!Array.isArray(p.leaves))throw 0;if(confirm("Replace current local data with this backup? This will also restore the actual uploaded PDFs/files included in the backup.")){employees=p.employees;records=p.records;leaves=p.leaves;archives=Array.isArray(p.archives)?p.archives:[];save();await archiveSaveRecords();await archiveClearFiles();const files=Array.isArray(p.archiveFiles)?p.archiveFiles:[];let restored=0;for(const item of files){if(!item||!item.id||!item.data)continue;const blob=dataURLToBlob(item.data);await archivePutFile(item.id,blob);const ax=archives.find(a=>a.id===item.id);if(ax){ax.compression='';ax.storedSize=blob.size;ax.fileSize=blob.size}restored++}renderAll();alert(`Backup restored successfully. ${restored} uploaded file(s) restored.`)}}catch(e){console.error("Restore failed",e);alert("Invalid or damaged attendance backup file.")}};fr.readAsText(file)}$("backupData").onclick=backup;$("restoreBtn").onclick=()=>$("restoreFile").click();$("restoreFile").onchange=e=>e.target.files[0]&&restore(e.target.files[0]);
+$("resetAttendance").onclick=()=>{if(confirm("Reset ALL attendance records?")){records=[];save();renderAll()}};$("clearAllData").onclick=()=>{if(confirm("Permanently clear employees, attendance and leave data from this device?")){employees=[];records=[];leaves=[];archives=[];save();archiveClearRecords().finally(()=>archiveClearFiles()).finally(()=>location.reload())}};
+function migrate(){let changed=false;employees=employees.map(e=>{const expected=employeeCodeFromName(e.name);if(e.employeeCode!==expected){e.employeeCode=expected;changed=true}return e});if(changed)save();}
+function renderAll(){renderEmployees();renderDashboard();renderBestEmployee();renderRecords();renderLeaves();renderReports();populateLeaveEmployees();renderArchive();$("empCode").value="";updateEmployeeStatus()}
+document.querySelectorAll(".tab").forEach(btn=>btn.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");$(btn.dataset.tab).classList.add("active");if(btn.dataset.tab==="employees")showGate("employeeGate","employeeContent",employeeAdminUnlocked);if(btn.dataset.tab==="records")showGate("recordsGate","recordsContent",recordsAdminUnlocked);if(btn.dataset.tab==="leave")showGate("leaveGate","leaveContent",leaveAdminUnlocked);if(btn.dataset.tab==="reports")showGate("reportsGate","reportsContent",reportsAdminUnlocked);if(btn.dataset.tab==="archive")showGate("archiveGate","archiveContent",archiveAdminUnlocked);if(btn.dataset.tab==="admin")showGate("adminGate","adminContent",adminUnlocked)});
+async function initArchive(){
+  try{await loadLargeStorageData();}catch(e){console.error("ATTENDA large-storage initialization failed",e);alert("This browser cannot open the large-storage database. Please use a modern browser with IndexedDB enabled.");return}
+  try{
+    const stored=await archiveLoadRecords();
+    if(stored.length){archives=stored;localStorage.removeItem(KEY_ARCHIVE)}
+    else if(archives.length){await archiveSaveRecords();localStorage.removeItem(KEY_ARCHIVE)}
+  }catch(e){console.warn("Archive database unavailable",e)}
+  try{await hydrateFacePhotos();}catch(e){console.warn("Face photo storage migration failed",e)}
+  migrate();renderAll();
+  setTimeout(async()=>{try{await optimizeExistingArchiveFiles();enhancedRenderArchive();}catch(e){console.warn('Automatic archive optimization failed',e)}},900);
+}
+initArchive();
+
+// Enhanced Business Archiving features
+// Automatic optimization of older archive images/files already stored on this device.
+async function optimizeExistingArchiveFiles(){
+  let changed=0;
+  for(const x of archives){
+    if(!x.fileName)continue;
+    try{
+      const existing=await archiveGetFile(x.id);
+      if(!existing)continue;
+      const originalType=x.fileType||existing.type||'application/octet-stream';
+      let file=new File([existing],x.fileName,{type:originalType});
+      file=await prepareArchiveFile(file);
+      const storage=await prepareArchiveStorage(file);
+      if(storage.storedSize < Number(x.storedSize||x.fileSize||existing.size) || (!x.storedSize && storage.compression)){
+        await archivePutFile(x.id,storage.blob);
+        x.fileSize=file.size;x.storedSize=storage.storedSize;x.fileType=file.type;x.compression=storage.compression;
+        if(file.type.startsWith('image/')&&file.size<=350*1024)x.preview=await blobToDataURLLocal(file);
+        x.updatedAt=new Date().toISOString();changed++;
+      }else if(!x.storedSize){
+        x.fileSize=Number(x.fileSize||file.size);x.storedSize=existing.size;
+      }
+    }catch(e){console.warn('Archive optimization skipped',x.id,e)}
+  }
+  if(changed)await archiveSaveRecords();
+  if(changed)await refreshStorageInfo();
+  return changed;
+}
+
+function archivePriorityRank(v){return v==='Critical'?3:v==='High'?2:1}
+function archiveTagsOf(x){return String(x.tags||'').split(',').map(v=>v.trim()).filter(Boolean)}
+function populateArchiveCategoryFilter(){const el=$('archiveFilterCategory');if(!el)return;const cur=el.value;const cats=[...new Set(archives.map(x=>x.category).filter(Boolean))].sort();el.innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join('');el.value=cats.includes(cur)?cur:''}
+function enhancedRenderArchive(){
+ if(!archiveAdminUnlocked)return;
+ populateArchiveCategoryFilter();
+ $('archiveTotal').textContent=archives.length;
+ $('archiveDigitized').textContent=archives.filter(x=>x.fileName).length;
+ $('archiveCategories').textContent=new Set(archives.map(x=>x.category).filter(Boolean)).size;
+ const y=String(now().getFullYear());$('archiveThisYear').textContent=archives.filter(x=>String(x.createdAt||'').slice(0,4)===y).length;
+ $('archiveNeedsReview').textContent=archives.filter(x=>x.status==='Needs Review').length;
+ $('archiveFavorites').textContent=archives.filter(x=>x.favorite).length;
+ const q=String($('archiveSearch').value||'').trim().toLowerCase(), cat=$('archiveFilterCategory').value, status=$('archiveFilterStatus').value, view=$('archiveFilterView').value, sort=$('archiveSort').value;
+ let list=archives.filter(x=>{const hay=[x.title,x.category,x.department,x.reference,x.notes,x.text,x.recordDate,x.fileName,x.tags,x.location,x.status,x.priority].join(' ').toLowerCase();if(q&&!hay.includes(q))return false;if(cat&&x.category!==cat)return false;if(status&&x.status!==status)return false;if(view==='favorites'&&!x.favorite)return false;if(view==='digitized'&&!x.fileName)return false;if(view==='nodigital'&&x.fileName)return false;return true});
+ list.sort((a,b)=>{if(sort==='title')return String(a.title).localeCompare(String(b.title));if(sort==='oldest')return String(a.createdAt).localeCompare(String(b.createdAt));if(sort==='recordnew')return String(b.recordDate||'').localeCompare(String(a.recordDate||''));if(sort==='priority')return archivePriorityRank(b.priority)-archivePriorityRank(a.priority);return String(b.createdAt).localeCompare(String(a.createdAt))});
+ $('archiveList').innerHTML=list.map(x=>{const tags=archiveTagsOf(x);const st=(x.status||'Active').toLowerCase().replace(/\s+/g,'-');return `<article class="archive-item"><div style="display:flex;justify-content:space-between;gap:8px"><div><h3>${esc(x.title)}</h3><div class="archive-meta"><span class="archive-badge">${esc(x.category)}</span><span class="archive-status status-${st}">${esc(x.status||'Active')}</span><span>Priority: ${esc(x.priority||'Normal')}</span>${x.recordDate?`<span>Record date: ${esc(x.recordDate)}</span>`:''}${x.department?`<span>Department: ${esc(x.department)}</span>`:''}${x.reference?`<span>Ref: ${esc(x.reference)}</span>`:''}${x.location?`<span>Location: ${esc(x.location)}</span>`:''}${x.reviewDate?`<span>Review: ${esc(x.reviewDate)}</span>`:''}</div></div><button class="archive-star" title="Favorite" data-archive-fav="${esc(x.id)}">${x.favorite?'★':'☆'}</button></div>${x.tags?`<div class="archive-tags">${tags.map(t=>`<span class="archive-tag">${esc(t)}</span>`).join('')}</div>`:''}${x.fileName?`<p class="muted">Digitized file: <b>${esc(x.fileName)}</b> (${formatBytes(x.fileSize||0)} original${x.storedSize&&x.storedSize<x.fileSize?` → ${formatBytes(x.storedSize)} stored`:""}${x.compression==='gzip'?" • compressed":""})</p>`:'<p class="muted">No digital file attached — indexed record only.</p>'}${x.text?`<p>${esc(x.text).slice(0,600)}${x.text.length>600?'…':''}</p>`:''}${x.notes?`<p class="muted">${esc(x.notes)}</p>`:''}${x.preview?`<img class="archive-preview" src="${x.preview}" alt="Document preview">`:''}<div class="actions">${x.fileName?`<button class="secondary" data-archive-open="${esc(x.id)}">OPEN</button><button class="secondary" data-archive-preview="${esc(x.id)}">PREVIEW</button><button class="secondary" data-archive-download="${esc(x.id)}">DOWNLOAD FILE</button><button class="secondary" data-archive-print-file="${esc(x.id)}">PRINT FILE</button>`:''}<button class="secondary" data-archive-print="${esc(x.id)}">PRINT RECORD</button><button class="secondary" data-archive-share="${esc(x.id)}">SHARE</button><button class="secondary" data-archive-edit="${esc(x.id)}">EDIT</button><button class="danger" data-archive-delete="${esc(x.id)}">DELETE</button></div></article>`}).join('')||'<p class="muted">No archived records found.</p>';
+ document.querySelectorAll('[data-archive-edit]').forEach(b=>b.onclick=()=>editArchive(b.dataset.archiveEdit));
+ document.querySelectorAll('[data-archive-delete]').forEach(b=>b.onclick=()=>deleteArchive(b.dataset.archiveDelete));
+ document.querySelectorAll('[data-archive-download]').forEach(b=>b.onclick=()=>downloadArchive(b.dataset.archiveDownload));
+ document.querySelectorAll('[data-archive-open]').forEach(b=>b.onclick=()=>openArchive(b.dataset.archiveOpen));
+ document.querySelectorAll('[data-archive-print]').forEach(b=>b.onclick=()=>printArchive(b.dataset.archivePrint));
+ document.querySelectorAll('[data-archive-print-file]').forEach(b=>b.onclick=()=>printArchiveFile(b.dataset.archivePrintFile));
+ document.querySelectorAll('[data-archive-fav]').forEach(b=>b.onclick=async()=>{const x=archives.find(a=>a.id===b.dataset.archiveFav);if(!x)return;x.favorite=!x.favorite;await archiveSaveRecords();enhancedRenderArchive()});
+}
+async function openArchive(id){const x=archives.find(a=>a.id===id);if(!x)return;const f=await archiveGetFile(id);if(!f)return alert('The digital file is not available on this device.');const u=URL.createObjectURL(f);window.open(u,'_blank');setTimeout(()=>URL.revokeObjectURL(u),60000)}
+async function printArchiveFile(id){
+  const x=archives.find(a=>a.id===id); if(!x)return;
+  try{
+    const f=await archiveGetFile(id);
+    if(!f){alert('The digital file is not available on this device.');return}
+    const blob=f instanceof Blob?f:new Blob([f],{type:x.fileType||'application/octet-stream'});
+    const u=URL.createObjectURL(blob);
+    const w=window.open(u,'_blank','noopener,noreferrer');
+    if(!w){
+      const a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener';a.click();
+      alert('The file was opened in a new tab. Use the Print option there to print or save it as a PDF.');
+    }else{
+      alert('The uploaded file has been opened. Use the Print option in the file viewer to print it or save it as a PDF for future reference.');
+    }
+    setTimeout(()=>URL.revokeObjectURL(u),60000);
+  }catch(e){
+    console.error('Digital file print failed',e);
+    alert('The uploaded file could not be opened for printing. Please download it and print it from your device.');
+  }
+}
+function printArchive(id){const x=archives.find(a=>a.id===id);if(!x)return;const w=window.open('','_blank','width=900,height=700');if(!w)return;w.document.write(`<html><head><title>${esc(x.title)}</title><style>body{font-family:Arial;padding:30px}h1{margin-bottom:6px}.meta{line-height:1.8}.tag{display:inline-block;padding:4px 8px;background:#eee;border-radius:12px;margin:3px}</style></head><body><h1>${esc(x.title)}</h1><div class="meta"><b>Category:</b> ${esc(x.category||'')}<br><b>Status:</b> ${esc(x.status||'Active')}<br><b>Priority:</b> ${esc(x.priority||'Normal')}<br><b>Record Date:</b> ${esc(x.recordDate||'')}<br><b>Department:</b> ${esc(x.department||'')}<br><b>Reference:</b> ${esc(x.reference||'')}<br><b>Location:</b> ${esc(x.location||'')}<br><b>Review / Retention Date:</b> ${esc(x.reviewDate||'')}</div><p>${archiveTagsOf(x).map(t=>`<span class="tag">${esc(t)}</span>`).join(' ')}</p><h3>Notes</h3><p>${esc(x.notes||'')}</p><h3>Transcription / OCR</h3><p style="white-space:pre-wrap">${esc(x.text||'')}</p><p><small>Generated from the offline Business Archiving Service.</small></p><script>window.onload=()=>window.print()<\/script>
+</body></html>`);w.document.close()}
+function enhancedEditArchive(id){const x=archives.find(a=>a.id===id);if(!x)return;$('archiveEditId').value=x.id;$('archiveTitle').value=x.title||'';$('archiveCategory').value=x.category||'Other';$('archiveRecordDate').value=x.recordDate||'';$('archiveDepartment').value=x.department||'';$('archiveReference').value=x.reference||'';$('archiveStatus').value=x.status||'Active';$('archivePriority').value=x.priority||'Normal';$('archiveLocation').value=x.location||'';$('archiveReviewDate').value=x.reviewDate||'';$('archiveTags').value=x.tags||'';$('archiveNotes').value=x.notes||'';$('archiveText').value=x.text||'';window.scrollTo({top:0,behavior:'smooth'})}
+$('archiveForm').onsubmit=async e=>{
+  e.preventDefault();
+  let file=$('archiveFile').files[0],id=$('archiveEditId').value,old=archives.find(x=>x.id===id);
+  let preview=old?.preview||'',fileName=old?.fileName||'',fileSize=old?.fileSize||0,fileType=old?.fileType||'',
+      storedSize=old?.storedSize||fileSize,compression=old?.compression||'';
+  if(file){
+    file=await prepareArchiveFile(file);
+    const storage=await prepareArchiveStorage(file);
+    fileName=file.name;fileSize=file.size;fileType=file.type;
+    storedSize=storage.storedSize;compression=storage.compression;
+    if(file.type.startsWith('image/')&&file.size<=350*1024)preview=await blobToDataURLLocal(file);
+    const newId=id||((crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2)));
+    const item={
+      id:newId,title:$('archiveTitle').value.trim(),category:$('archiveCategory').value,recordDate:$('archiveRecordDate').value,
+      department:$('archiveDepartment').value.trim(),reference:$('archiveReference').value,status:$('archiveStatus').value,
+      priority:$('archivePriority').value,location:$('archiveLocation').value.trim(),reviewDate:$('archiveReviewDate').value,
+      tags:$('archiveTags').value.trim(),notes:$('archiveNotes').value.trim(),text:$('archiveText').value.trim(),
+      fileName,fileSize,fileType,storedSize,compression,preview,favorite:old?.favorite||false,
+      createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
+    };
+    await archivePutFile(newId,storage.blob);
+    archives=id?archives.map(x=>x.id===id?item:x):[item,...archives];
+  }else{
+    const item={
+      id:id||((crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2))),
+      title:$('archiveTitle').value.trim(),category:$('archiveCategory').value,recordDate:$('archiveRecordDate').value,
+      department:$('archiveDepartment').value.trim(),reference:$('archiveReference').value,status:$('archiveStatus').value,
+      priority:$('archivePriority').value,location:$('archiveLocation').value.trim(),reviewDate:$('archiveReviewDate').value,
+      tags:$('archiveTags').value.trim(),notes:$('archiveNotes').value.trim(),text:$('archiveText').value.trim(),
+      fileName,fileSize,fileType,storedSize,compression,preview,favorite:old?.favorite||false,
+      createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
+    };
+    archives=id?archives.map(x=>x.id===id?item:x):[item,...archives];
+  }
+  await archiveSaveRecords();clearArchiveForm();enhancedRenderArchive();
+  await refreshStorageInfo();
+  alert('Archived record saved. Large images are reduced and supported document files are compressed when this saves space.');
+}
+$('archiveClear').onclick=clearArchiveForm;$('archiveSearch').oninput=enhancedRenderArchive;
+$('archiveAdminLogin').onclick=()=>unlockGate("archiveAdminCode",()=>{archiveAdminUnlocked=true;showGate("archiveGate","archiveContent",true);renderArchive()},"archiveGateMessage");
+$('archiveAdminCode').onkeydown=e=>{if(e.key==="Enter")$("archiveAdminLogin").click()};
+$('archiveExport').onclick=()=>{const rows=[["Title","Category","Record Date","Department","Reference","Digital File","Notes","Transcription/OCR","Created"],...archives.map(x=>[x.title,x.category,x.recordDate,x.department,x.reference,x.fileName,x.notes,x.text,x.createdAt])];csvDownload(rows,`business-archive-index-${dateStr(now())}.csv`)};
+$("archivePrint").onclick=()=>window.print();
+$("archiveClearAll").onclick=async()=>{if(confirm("Permanently clear all business archive records from this device?")){archives=[];await archiveClearFiles();await archiveClearRecords();renderArchive()}}
+
+$('archiveBulkBtn').onclick=()=>$('archiveBulkFiles').click();
+$('archiveBulkFiles').onchange=async e=>{
+  const files=[...e.target.files];if(!files.length)return;
+  let saved=0;
+  for(let file of files){
+    try{
+      file=await prepareArchiveFile(file);
+      const storage=await prepareArchiveStorage(file);
+      const id=(crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+"-"+Math.random().toString(36).slice(2));
+      let bulkPreview='';
+      if(String(file.type||'').startsWith('image/')&&file.size<=350*1024){try{bulkPreview=await blobToDataURLLocal(file)}catch(err){}}
+      const item={
+        id,title:file.name.replace(/\.[^.]+$/,''),category:'Other',recordDate:'',department:'',reference:'',
+        status:'Active',priority:'Normal',location:'',reviewDate:'',tags:'bulk import',notes:'Bulk-added document',text:'',
+        fileName:file.name,fileSize:file.size,fileType:file.type,storedSize:storage.storedSize,compression:storage.compression,
+        preview:bulkPreview,favorite:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()
+      };
+      await archivePutFile(id,storage.blob);archives.unshift(item);saved++;
+    }catch(err){console.warn('Bulk archive file skipped',err)}
+  }
+  await archiveSaveRecords();e.target.value='';enhancedRenderArchive();await refreshStorageInfo();
+  alert(saved+' document(s) added. Images were reduced and other supported files were compressed when this saved space.');
+};
+// Replace legacy edit/render behavior with enhanced versions
+editArchive=enhancedEditArchive;renderArchive=enhancedRenderArchive;
+
+
+/* === Applied feature pack === */
+const FEATURE_ACTIVITY_KEY='attendance_activity_v1', FEATURE_THEME_KEY='attendance_theme_v1';
+let activityLog=JSON.parse(localStorage.getItem(FEATURE_ACTIVITY_KEY)||'[]');
+let pendingRestorePayload=null, pendingRestoreFile=null;
+function persistActivity(){localStorage.setItem(FEATURE_ACTIVITY_KEY,JSON.stringify(activityLog.slice(0,500)))}
+function logActivity(action,detail){activityLog.unshift({id:crypto.randomUUID(),time:new Date().toISOString(),action:String(action),detail:String(detail||'')});activityLog=activityLog.slice(0,500);persistActivity();renderActivity();}
+function renderActivity(){const el=$('activityList');if(!el)return;$('featureActivityCount').textContent=activityLog.length;el.innerHTML=activityLog.length?activityLog.slice(0,100).map(a=>`<div class="activity-item"><b>${esc(a.action)}</b> — ${esc(a.detail)}<time>${new Date(a.time).toLocaleString()}</time></div>`).join(''):'<p class="muted" style="padding:12px">No activity yet.</p>'}
+async function refreshStorageInfo(){try{const est=navigator.storage&&navigator.storage.estimate?await navigator.storage.estimate():{};const used=Number(est.usage||0),quota=Number(est.quota||0);const archiveBytes=archives.reduce((n,x)=>n+Number(x.storedSize||x.fileSize||0),0);$('featureArchiveCount').textContent=archives.length;$('featureFileCount').textContent=archives.filter(x=>x.fileName).length;$('featureStorageUsed').textContent=used?formatBytes(used):formatBytes(archiveBytes);if(quota){const pct=Math.min(100,used/quota*100);$('storageBarFill').style.width=pct.toFixed(1)+'%';$('storageText').textContent=`${formatBytes(used)} used of about ${formatBytes(quota)} available (${pct.toFixed(1)}%). Uploaded archive files: ${formatBytes(archiveBytes)}.`}else{$('storageText').textContent=`Uploaded archive files: ${formatBytes(archiveBytes)}. Browser storage estimate is unavailable.`}}catch(e){}}
+function formatBytes(n){n=Number(n)||0;if(n<1024)return n+' B';const u=['KB','MB','GB','TB'];let i=-1;do{n/=1024;i++}while(n>=1024&&i<u.length-1);return n.toFixed(n>=100?0:n>=10?1:2)+' '+u[i]}
+function applyTheme(){const dark=localStorage.getItem(FEATURE_THEME_KEY)==='dark';document.body.classList.toggle('dark-mode',dark);if($('darkModeBtn'))$('darkModeBtn').textContent=dark?'LIGHT MODE':'DARK MODE'}
+async function fileAlreadyArchived(file,excludeId){const candidates=archives.filter(x=>x.fileName&&x.id!==excludeId);return candidates.find(x=>x.fileName===file.name&&Number(x.fileSize||0)===Number(file.size)&&String(x.fileType||'')===String(file.type||''))||null}
+async function previewArchive(id){const x=archives.find(a=>a.id===id);if(!x)return;const f=await archiveGetFile(id);if(!f)return alert('The digital file is not available on this device.');const blob=f instanceof Blob?f:new Blob([f],{type:x.fileType||'application/octet-stream'});const url=URL.createObjectURL(blob);$('previewModalTitle').textContent=x.fileName||x.title||'File Preview';$('previewModalBody').innerHTML='';const type=blob.type||x.fileType||'';if(type.startsWith('image/')){const img=document.createElement('img');img.src=url;$('previewModalBody').appendChild(img)}else if(type==='application/pdf'||String(x.fileName||'').toLowerCase().endsWith('.pdf')){const iframe=document.createElement('iframe');iframe.src=url;$('previewModalBody').appendChild(iframe)}else{$('previewModalBody').innerHTML='<div style="padding:30px;text-align:center"><h3>Preview unavailable for this file type</h3><p>Use DOWNLOAD FILE or OPEN FILE to view it with your device application.</p></div>'}$('previewDownloadBtn').onclick=()=>downloadArchive(id,false);$('previewModal').classList.add('show');$('previewModal').dataset.url=url;logActivity('Previewed file',x.fileName||x.title);}
+function closePreview(){const m=$('previewModal');if(m){const u=m.dataset.url;if(u)URL.revokeObjectURL(u);m.classList.remove('show');m.dataset.url='';$('previewModalBody').innerHTML=''}}
+async function shareArchive(id){const x=archives.find(a=>a.id===id);if(!x)return;try{const f=x.fileName?await archiveGetFile(id):null;if(navigator.share){const data={title:x.title,text:`${x.title}\nCategory: ${x.category||''}\nReference: ${x.reference||''}`};if(f&&navigator.canShare){const blob=f instanceof Blob?f:new Blob([f],{type:x.fileType||'application/octet-stream'});const sf=new File([blob],x.fileName||'document',{type:blob.type||x.fileType||'application/octet-stream'});if(navigator.canShare({files:[sf]})){data.files=[sf]}}await navigator.share(data);logActivity('Shared record',x.title)}else{await navigator.clipboard.writeText(`${x.title}\nCategory: ${x.category||''}\nReference: ${x.reference||''}\nFile: ${x.fileName||'None'}`);alert('Record details copied to clipboard.');logActivity('Copied record details',x.title)}}catch(e){if(e.name!=='AbortError')alert('Sharing was not available on this device.')}}
+async function verifyRestoreFile(file){pendingRestorePayload=null;pendingRestoreFile=null;const box=$('restoreVerification');if(!file){box.textContent='No backup selected.';return}try{const text=await file.text();const p=JSON.parse(text);if(!Array.isArray(p.employees)||!Array.isArray(p.records)||!Array.isArray(p.leaves))throw new Error('Missing required data');const files=Array.isArray(p.archiveFiles)?p.archiveFiles:[];const arch=Array.isArray(p.archives)?p.archives:[];pendingRestorePayload=p;pendingRestoreFile=file;box.innerHTML=`<b>Backup verified.</b> ${p.employees.length} employees, ${p.records.length} attendance records, ${p.leaves.length} leave records, ${arch.length} archive records and <b>${files.length} actual uploaded file(s)</b> are included. Backup date: ${esc(p.exportedAt||'unknown')}. Choose Replace or Merge, then press RESTORE DATA again.`;logActivity('Verified backup',`${arch.length} archive records and ${files.length} uploaded file(s)`)}catch(e){box.textContent='This backup could not be verified. It may be damaged or not be a valid application backup.';alert('Invalid or damaged attendance backup file.')}}
+async function restoreVerified(){if(!pendingRestorePayload){$('restoreFile').click();return}const p=pendingRestorePayload,mode=$('restoreMode').value;if(!confirm(mode==='merge'?'Merge this verified backup with current local data? Existing records with the same ID will be kept.':'Replace current local data with this verified backup? This will also restore the actual uploaded PDFs/files included in the backup.'))return;try{let restored=0;const importedArchives=Array.isArray(p.archives)?p.archives:[];if(mode==='replace'){employees=p.employees;records=p.records;leaves=p.leaves;archives=importedArchives;save();await archiveSaveRecords();await archiveClearFiles()}else{const mergeById=(a,b)=>{const m=new Map(a.map(x=>[x.id,x]));b.forEach(x=>{if(x&&x.id&&!m.has(x.id))m.set(x.id,x)});return [...m.values()]};employees=mergeById(employees,p.employees||[]);records=mergeById(records,p.records||[]);leaves=mergeById(leaves,p.leaves||[]);archives=mergeById(archives,importedArchives);save();await archiveSaveRecords()}const files=Array.isArray(p.archiveFiles)?p.archiveFiles:[];for(const item of files){if(!item||!item.id||!item.data)continue;if(mode==='merge'&&archives.some(x=>x.id===item.id)&&await archiveGetFile(item.id))continue;const blob=dataURLToBlob(item.data);await archivePutFile(item.id,blob);const ax=archives.find(a=>a.id===item.id);if(ax){ax.compression='';ax.storedSize=blob.size;ax.fileSize=blob.size}restored++}activityLog=Array.isArray(p.activityLog)?p.activityLog.concat(activityLog).slice(0,500):activityLog;persistActivity();renderAll();refreshStorageInfo();renderActivity();alert(`${mode==='merge'?'Backup merged':'Backup restored'} successfully. ${restored} uploaded file(s) restored.`);pendingRestorePayload=null;pendingRestoreFile=null;$('restoreFile').value='';$('restoreVerification').textContent='No backup selected.';logActivity(mode==='merge'?'Merged backup':'Restored backup',`${restored} uploaded file(s)`)}catch(e){console.error(e);alert('Restore failed. The backup may be damaged.')}}
+async function enhancedBackup(){try{const files=[];for(const x of archives){if(!x.fileName)continue;const file=await archiveGetFile(x.id);if(file){const blob=file instanceof Blob?file:new Blob([file],{type:x.fileType||'application/octet-stream'});files.push({id:x.id,fileName:x.fileName,fileType:x.fileType||blob.type||'application/octet-stream',fileSize:blob.size,data:await blobToDataURL(blob)})}}const payload={app:'Employee Attendance + Business Archiving',version:6,exportedAt:new Date().toISOString(),employees,records,leaves,archives,archiveFiles:files,activityLog};const json=JSON.stringify(payload);const a=document.createElement('a');const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));a.href=url;a.download=`employee-attendance-backup-${dateStr(now())}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);logActivity('Created complete backup',`${archives.length} archive records and ${files.length} uploaded file(s)`);alert(`Complete backup created. ${files.length} actual uploaded file(s) included.`)}catch(e){console.error(e);alert('The backup could not be created. Please try again.')}}
+function exportActivity(){const rows=[['Date','Action','Details'],...activityLog.map(x=>[x.time,x.action,x.detail])];csvDownload(rows,`activity-history-${dateStr(now())}.csv`)}
+function installFeatureEvents(){applyTheme();$('refreshBestEmployee').onclick=renderBestEmployee;$('bestEmployeeYear').onchange=renderBestEmployee;$('darkModeBtn').onclick=()=>{const dark=!document.body.classList.contains('dark-mode');localStorage.setItem(FEATURE_THEME_KEY,dark?'dark':'light');applyTheme();logActivity('Changed appearance',dark?'Dark mode':'Light mode')};$('previewCloseBtn').onclick=closePreview;$('previewModal').onclick=e=>{if(e.target.id==='previewModal')closePreview()};$('clearActivity').onclick=()=>{if(confirm('Clear activity history?')){activityLog=[];persistActivity();renderActivity()}};$('exportActivity').onclick=exportActivity;$('restoreBtn').onclick=restoreVerified;$('restoreFile').onchange=e=>verifyRestoreFile(e.target.files[0]);$('archiveAdminLogin').addEventListener('click',()=>setTimeout(refreshStorageInfo,100));renderActivity();refreshStorageInfo();}
+installFeatureEvents();
+// Enhance archive renderer handlers after the existing renderer is defined.
+const oldEnhancedRenderArchive=enhancedRenderArchive;
+enhancedRenderArchive=function(){oldEnhancedRenderArchive();document.querySelectorAll('[data-archive-preview]').forEach(b=>b.onclick=()=>previewArchive(b.dataset.archivePreview));document.querySelectorAll('[data-archive-share]').forEach(b=>b.onclick=()=>shareArchive(b.dataset.archiveShare));refreshStorageInfo()};
+renderArchive=enhancedRenderArchive;
+setTimeout(()=>enhancedRenderArchive(),0);
+// Duplicate protection for the main archive upload and bulk uploads.
+const oldArchiveSubmit=$('archiveForm').onsubmit;
+$('archiveForm').onsubmit=async function(e){const file=$('archiveFile').files[0],id=$('archiveEditId').value; if(file){const dup=await fileAlreadyArchived(file,id);if(dup&&!confirm(`A file with the same name, size and type is already archived as "${dup.title}". Add it again anyway?`)){e.preventDefault();return}if(dup)logActivity('Duplicate upload allowed',file.name)}const before=archives.length;await oldArchiveSubmit.call(this,e);if(archives.length!==before||id)logActivity(id?'Updated archive record':'Added archive record',$('archiveTitle').value.trim()||file?.name||'Record');refreshStorageInfo()};
+$('archiveBulkFiles').onchange=async function(e){
+  const files=[...e.target.files]; if(!files.length)return;
+  let added=0,blocked=0;
+  for(let original of files){
+    const dup=await fileAlreadyArchived(original);
+    if(dup && !confirm(`"${original.name}" already exists as "${dup.title}". Add duplicate?`)){blocked++;continue}
+    try{
+      const originalSize=original.size, originalType=original.type;
+      const file=await prepareArchiveFile(original);
+      const storage=await prepareArchiveStorage(file);
+      const id=crypto.randomUUID();
+      const item={id,title:original.name.replace(/\.[^.]+$/,''),category:'Other',recordDate:'',department:'',reference:'',status:'Active',priority:'Normal',location:'',reviewDate:'',tags:'bulk import',notes:'Bulk-added document',text:'',fileName:original.name,fileSize:originalSize,fileType:originalType,storedSize:storage.storedSize,compression:storage.compression,preview:'',favorite:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+      if(String(file.type||'').startsWith('image/')&&file.size<=350*1024){try{item.preview=await blobToDataURLLocal(file)}catch(err){}}
+      await archivePutFile(id,storage.blob); archives.unshift(item); added++;
+    }catch(err){console.warn('Compressed bulk upload skipped',err)}
+  }
+  await archiveSaveRecords(); e.target.value=''; enhancedRenderArchive(); await refreshStorageInfo();
+  if(blocked)logActivity('Blocked duplicate uploads',`${blocked} duplicate file(s)`);
+  if(added)logActivity('Bulk-added compressed documents',`${added} document(s)`);
+  alert(`${added} document(s) added and compressed before storage${blocked?`; ${blocked} duplicate(s) skipped`:''}.`);
+};
+// Instrument common archive actions for activity history.
+const oldDeleteArchive=deleteArchive;deleteArchive=async function(id){const x=archives.find(a=>a.id===id);await oldDeleteArchive(id);if(x)logActivity('Deleted archive record',x.title);refreshStorageInfo()};
+const oldDownloadArchive=downloadArchive;downloadArchive=async function(id,openInstead){const x=archives.find(a=>a.id===id);await oldDownloadArchive(id,openInstead);if(x)logActivity(openInstead?'Opened file':'Downloaded file',x.fileName||x.title)};
+const oldPrintArchive=printArchive;printArchive=function(id){const x=archives.find(a=>a.id===id);oldPrintArchive(id);if(x)logActivity('Printed record',x.title)};
+$('backupData').onclick=enhancedBackup;
+</script>
+
+
+<script>
+/* Software Sales (PasWeb) common signed licence verification. */
+(function(){const STORE='ata_device_license_v1',DEVICE='ata_device_id_v1',LAST='ata_license_last_seen_v2';const PUB='YWjLEinx9Iovv_fsUiVC01Mvm8kodkQ5L62eb3TcxzE';const dec=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0))};
+function deviceId(){let id=localStorage.getItem(DEVICE);if(!id){const a=crypto.getRandomValues(new Uint8Array(16));id=Array.from(a,x=>x.toString(16).padStart(2,'0')).join('').toUpperCase();localStorage.setItem(DEVICE,id)}return id}
+async function validate(token,id){try{const parts=String(token||'').trim().split('.');if(parts.length!==2)return false;const p=JSON.parse(new TextDecoder().decode(dec(parts[0])));if(p.product!=='EMPLOYEE_ATTENDANCE'||p.deviceId!==id||p.status!=='active')return false;const k=await crypto.subtle.importKey('raw',dec(PUB),'Ed25519',false,['verify']);if(!await crypto.subtle.verify('Ed25519',k,dec(parts[1]),new TextEncoder().encode(parts[0])))return false;if(p.expiresAt&&Date.now()>Date.parse(p.expiresAt))return false;const now=Date.now(),last=Number(localStorage.getItem(LAST)||0);if(last&&now+120000<last)return false;localStorage.setItem(LAST,String(Math.max(now,last)));return true}catch(e){console.warn('Licence verification failed',e);return false}}
+let overlay=null,checking=false;async function enforce(){if(checking)return;checking=true;try{const id=deviceId(),saved=localStorage.getItem(STORE)||'';if(await validate(saved,id)){if(overlay){overlay.remove();overlay=null}return}if(saved)localStorage.removeItem(STORE);if(!overlay)showGate(id)}finally{checking=false}}
+function showGate(id){overlay=document.createElement('div');overlay.id='ataLicenseGate';overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#edf2f7;display:flex;align-items:center;justify-content:center;padding:18px;font-family:system-ui,sans-serif;color:#172536';overlay.innerHTML=`<section style="max-width:520px;width:100%;background:white;border-radius:18px;padding:24px;box-shadow:0 12px 50px #1233"><h2 style="margin:0 0 8px;color:#16324f">Employee Attendance</h2><p>Send this Device ID to the issuer for a licence assigned to this device.</p><input id="ataDeviceId" readonly value="${id}" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccd5df;border-radius:8px"><button id="ataCopyId">Copy Device ID</button><textarea id="ataLicenseKey" placeholder="Paste licence key" style="width:100%;min-height:82px;padding:12px;margin-top:12px;box-sizing:border-box"></textarea><button id="ataActivate">Activate licence</button><p id="ataLicenseMsg" role="status" style="color:#b42318"></p></section>`;document.body.appendChild(overlay);document.getElementById('ataCopyId').onclick=async()=>{try{await navigator.clipboard.writeText(id)}catch(e){document.getElementById('ataDeviceId').select();document.execCommand('copy')}};document.getElementById('ataActivate').onclick=async()=>{const token=document.getElementById('ataLicenseKey').value.trim();if(await validate(token,id)){localStorage.setItem(STORE,token);location.reload()}else document.getElementById('ataLicenseMsg').textContent='Invalid, expired, wrong-product, or device-mismatched licence key.'}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforce,{once:true});else enforce();setInterval(enforce,15000);window.addEventListener('focus',enforce);document.addEventListener('visibilitychange',()=>{if(!document.hidden)enforce()});
+})();
+</script>
+
+
+<script>
+/* Progressive Web App support. Existing attendance features and data logic are retained. */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function (err) {
+      console.warn('Offline install support could not be registered:', err);
+    });
+  });
+}
+</script>
+
+
+<style id="owner-copyright-footer-style">
+  #owner-copyright-footer {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px 16px;
+    margin-top: 24px;
+    background: #16324f;
+    color: #ffffff;
+    border-top: 3px solid #246bfd;
+    font: 12px/1.55 Arial, sans-serif;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  @media print {
+    #owner-copyright-footer {
+      display: block !important;
+      position: static !important;
+      width: 100% !important;
+      margin-top: 16px !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+      border-top: 1px solid #000000 !important;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+  }
+</style>
+<footer id="owner-copyright-footer" role="contentinfo">
+  © Copyright. Unauthorized copying, modification, or distribution of this software without the owner’s permission is prohibited. Protection mechanisms are built into the code to help prevent violations. Offenders may face legal consequences.
+</footer>
+<script id="owner-copyright-footer-ensure">
+(function () {
+  var text = '© Copyright. Unauthorized copying, modification, or distribution of this software without the owner’s permission is prohibited. Protection mechanisms are built into the code to help prevent violations. Offenders may face legal consequences.';
+  function ensureCopyrightFooter() {
+    if (!document.body) return;
+    var footer = document.getElementById('owner-copyright-footer');
+    if (!footer) {
+      footer = document.createElement('footer');
+      footer.id = 'owner-copyright-footer';
+      footer.setAttribute('role', 'contentinfo');
+      footer.textContent = text;
+      document.body.appendChild(footer);
+    } else {
+      footer.textContent = text;
+      if (footer.parentNode !== document.body) document.body.appendChild(footer);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureCopyrightFooter, { once: true });
+  } else {
+    ensureCopyrightFooter();
+  }
+  var observer;
+  if (document.body && window.MutationObserver) {
+    observer = new MutationObserver(function () {
+      if (!document.getElementById('owner-copyright-footer')) ensureCopyrightFooter();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  } else {
+    window.addEventListener('load', ensureCopyrightFooter);
+  }
+})();
+</script>
+
+</body></html>
